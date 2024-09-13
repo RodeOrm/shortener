@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	repo "github.com/rodeorm/shortener/internal/repo"
 )
 
-func (h DecoratedHandler) PingDBHandler(w http.ResponseWriter, r *http.Request) {
+func (h Server) PingDBHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := repo.InitPostgresStorage(h.DatabaseConnectionString)
 	if err != nil {
 		fmt.Fprintf(w, "%s", "Успешное соединение с БД")

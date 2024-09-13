@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 )
 
 // RootHandler POST принимает в теле запроса строку URL для сокращения и возвращает ответ с кодом 201 и сокращённым URL в виде текстовой строки в теле.
-func (h DecoratedHandler) RootHandler(w http.ResponseWriter, r *http.Request) {
+func (h Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 
 	w, userKey := h.GetUserIdentity(w, r)
 

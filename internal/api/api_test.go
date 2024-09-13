@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"bytes"
@@ -13,23 +13,24 @@ import (
 	"github.com/rodeorm/shortener/internal/repo"
 )
 
-func TestAPIHandlers(t *testing.T) {
+func TestAPIrouters(t *testing.T) {
 	type want struct {
 		statusCode  int
 		contentType string
 	}
 	tests := []struct {
 		name    string
-		handler DecoratedHandler
 		method  string
-		want    want
 		request string
 		body    string
+
+		server Server
+		want   want
 	}{
 		{
 			//Нужно принимать и возвращать JSON
 			name:    "Проверка обработки корректных запросов: POST (json)",
-			handler: DecoratedHandler{ServerAddress: "http://localhost:8080", Storage: repo.NewStorage("", "")},
+			server:  Server{ServerAddress: "http://localhost:8080", Storage: repo.NewStorage("", "")},
 			method:  "POST",
 			body:    `{"url":"http://www.yandex.ru"}`,
 			request: "http://localhost:8080/api/shorten",
@@ -38,7 +39,7 @@ func TestAPIHandlers(t *testing.T) {
 		{
 			//Нужно принимать и возвращать JSON
 			name:    "Проверка обработки некорректных запросов: POST (json)",
-			handler: DecoratedHandler{ServerAddress: "http://localhost:8080", Storage: repo.NewStorage("", "")},
+			server:  Server{ServerAddress: "http://localhost:8080", Storage: repo.NewStorage("", "")},
 			method:  "POST",
 			body:    ``,
 			request: "http://localhost:8080/api/shorten",
@@ -65,7 +66,7 @@ func TestAPIHandlers(t *testing.T) {
 				request = httptest.NewRequest(http.MethodDelete, tt.request, nil)
 			}
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(tt.handler.APIShortenHandler)
+			h := http.HandlerFunc(tt.server.APIShortenHandler)
 			h.ServeHTTP(w, request)
 			result := w.Result()
 			err := result.Body.Close()

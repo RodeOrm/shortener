@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 )
 
 // APIShortenHandler принимает в теле запроса JSON-объект {"url":"<some_url>"} и возвращает в ответ объект {"result":"<shorten_url>"}.
-func (h DecoratedHandler) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
+func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	url := repo.URL{}
 	shortURL := repo.ShortenURL{}
 

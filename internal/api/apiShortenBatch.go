@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	repo "github.com/rodeorm/shortener/internal/repo"
 )
 
-func (h DecoratedHandler) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
+func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
 	w, userKey := h.GetUserIdentity(w, r)
 	var urlReq []repo.URLWithCorrelationRequest
 	var urlRes []repo.URLWithCorrelationResponse

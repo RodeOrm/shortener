@@ -4,12 +4,13 @@ import (
 	"flag"
 	"os"
 
-	"github.com/rodeorm/shortener/internal/control"
+	"github.com/rodeorm/shortener/internal/api"
+	"github.com/rodeorm/shortener/internal/logger"
 	"github.com/rodeorm/shortener/internal/repo"
 )
 
-//config выполняет первоначальную конфигурацию
-func config() *control.DecoratedHandler {
+// config выполняет первоначальную конфигурацию
+func config() *api.Server {
 	flag.Parse()
 
 	// os.Setenv("SERVER_ADDRESS", "localhost:8080")
@@ -53,5 +54,7 @@ func config() *control.DecoratedHandler {
 		databaseConnectionString = *d
 	}
 
-	return &control.DecoratedHandler{ServerAddress: serverAddress, Storage: repo.NewStorage(fileStoragePath, databaseConnectionString), BaseURL: baseURL}
+	logger.Initialize("info")
+
+	return &api.Server{ServerAddress: serverAddress, Storage: repo.NewStorage(fileStoragePath, databaseConnectionString), BaseURL: baseURL}
 }

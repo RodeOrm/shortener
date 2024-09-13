@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 APIUserDeleteURLsHandler принимает список идентификаторов сокращённых URL для удаления в формате: [ "a", "b", "c", "d", ...].
 В случае успешного приёма запроса хендлер должен возвращать HTTP-статус 202 Accepted.
 */
-func (h DecoratedHandler) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
+func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
 	w, userKey := h.GetUserIdentity(w, r)
 	_, err := strconv.Atoi(userKey)
 	if err != nil {

@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 )
 
 /*APIUserGetURLsHandler возвращает пользователю все когда-либо сокращённые им URL в формате JSON*/
-func (h DecoratedHandler) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
+func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 	w, userKey := h.GetUserIdentity(w, r)
 	userID, err := strconv.Atoi(userKey)
 	if err != nil {

@@ -1,14 +1,14 @@
-package control
+package api
 
 import (
 	"fmt"
 	"net/http"
 
-	cookie "github.com/rodeorm/shortener/internal/control/cookie"
+	cookie "github.com/rodeorm/shortener/internal/api/cookie"
 )
 
 // GetUserIdentity определяет по кукам какой пользователь авторизовался, если куки некорректные, то создает новые
-func (h DecoratedHandler) GetUserIdentity(w http.ResponseWriter, r *http.Request) (http.ResponseWriter, string) {
+func (h Server) GetUserIdentity(w http.ResponseWriter, r *http.Request) (http.ResponseWriter, string) {
 	userKey, err := cookie.GetUserKeyFromCoockie(r)
 
 	if err != nil {

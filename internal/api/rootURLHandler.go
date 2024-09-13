@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ RootURLHandler GET /{id} принимает в качестве URL-параме
 Нужно учесть некорректные запросы и возвращать для них ответ с кодом 400
 При запросе удалённого URL с помощью хендлера GET /{id} нужно вернуть статус 410 Gone
 */
-func (h DecoratedHandler) RootURLHandler(w http.ResponseWriter, r *http.Request) {
+func (h Server) RootURLHandler(w http.ResponseWriter, r *http.Request) {
 	currentID := mux.Vars(r)["URL"]
 	originalURL, isExist, isDeleted, _ := h.Storage.SelectOriginalURL(currentID)
 	if isDeleted {
