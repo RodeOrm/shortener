@@ -11,7 +11,13 @@ import (
 
 /*APIUserGetURLsHandler возвращает пользователю все когда-либо сокращённые им URL в формате JSON*/
 func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
-	w, user, err := h.GetUserIdentity(w, r)
+	w, user, isUnathorized, err := h.GetUserIdentity(w, r)
+
+	if isUnathorized {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	if err != nil {
 		log.Println("APIUserGetURLsHandler", err)
 		w.WriteHeader(http.StatusNoContent)
@@ -19,7 +25,7 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	URLHistory, err := h.Storage.SelectUserURLHistory(user)
 	if err != nil {
-		fmt.Println("APIUserGetURLsHandler", err)
+		log.Println("APIUserGetURLsHandler", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}

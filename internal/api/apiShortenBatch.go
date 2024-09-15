@@ -11,7 +11,7 @@ import (
 )
 
 func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
-	w, user, err := h.GetUserIdentity(w, r)
+	w, user, isUnathorized, err := h.GetUserIdentity(w, r)
 
 	if err != nil {
 		log.Fatal("APIShortenBatch", err)
@@ -45,7 +45,12 @@ func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	if isUnathorized {
+		w.WriteHeader(http.StatusUnauthorized)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
+
 	bodyBytes, err = json.Marshal(urlRes)
 	if err != nil {
 		fmt.Println(err)

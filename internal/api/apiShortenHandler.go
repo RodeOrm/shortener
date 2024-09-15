@@ -15,7 +15,7 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	url := core.URL{}
 	shortURL := core.ShortenURL{}
 
-	w, user, err := h.GetUserIdentity(w, r)
+	w, user, isUnathorized, err := h.GetUserIdentity(w, r)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -25,14 +25,14 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(bodyBytes, &url)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	shortURLKey, isDuplicated, err := h.Storage.InsertURL(url.Key, h.BaseURL, user)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -40,6 +40,8 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	shortURL.Key = h.BaseURL + "/" + shortURLKey
 	if isDuplicated {
 		w.WriteHeader(http.StatusConflict)
+	} else if isUnathorized {
+		w.WriteHeader(http.StatusUnauthorized)
 	} else {
 		w.WriteHeader(http.StatusCreated)
 	}

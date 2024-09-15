@@ -12,7 +12,12 @@ APIUserDeleteURLsHandler принимает список идентификат�
 В случае успешного приёма запроса хендлер должен возвращать HTTP-статус 202 Accepted.
 */
 func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
-	w, user, err := h.GetUserIdentity(w, r)
+	w, user, isUnathorized, err := h.GetUserIdentity(w, r)
+	if isUnathorized {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	if err != nil {
 		log.Println("APIUserDeleteURLsHandler", err)
 		w.WriteHeader(http.StatusNoContent)
@@ -20,6 +25,7 @@ func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
+
 	if err != nil {
 		log.Println("APIUserDeleteURLsHandler", err)
 		w.WriteHeader(http.StatusNoContent)
