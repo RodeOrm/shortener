@@ -5,6 +5,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rodeorm/shortener/internal/core"
+	"github.com/rodeorm/shortener/internal/logger"
+	"go.uber.org/zap"
 )
 
 type AbstractStorage interface {
@@ -53,6 +55,11 @@ func InitMemoryStorage() *memoryStorage {
 	usr := make(map[int]*core.User)
 	usrURL := make(map[int]*[]core.UserURLPair)
 	storage := memoryStorage{originalToShort: ots, shortToOriginal: sto, users: usr, userURLPairs: usrURL}
+
+	logger.Log.Info("Init storage",
+		zap.String("Storage", "Memory storage"),
+	)
+
 	return &storage
 }
 
@@ -65,6 +72,11 @@ func InitFileStorage(filePath string) (*fileStorage, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Log.Info("Init storage",
+		zap.String("Storage", "File storage"),
+	)
+
 	return &storage, nil
 }
 
@@ -81,7 +93,15 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 	}
 	delQueue := make(chan string)
 	storage := postgresStorage{DB: db, ConnectionString: connectionString, deleteQueue: delQueue}
-	storage.createTables(ctx)
+	err = storage.createTables(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Log.Info("Init storage",
+		zap.String("Storage", "PostgresStorage"),
+	)
 
 	return &storage, nil
 }
