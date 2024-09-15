@@ -24,5 +24,6 @@ func (h Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusCreated)
 	}
-	fmt.Fprintf(w, h.BaseURL+"/"+shortURLKey)
+	body := fmt.Sprintf("%s/%s", h.BaseURL, shortURLKey)
+	w.Write([]byte(body))
 }
