@@ -91,7 +91,7 @@ func (s postgresStorage) InsertURL(URL, baseURL, userKey string) (string, bool, 
 		return "", false, err
 	}
 
-	_, err = s.DB.ExecContext(ctx, "INSERT INTO Urls (original, short, userID) SELECT $1, $2, $3", URL, fmt.Sprintf("%s/%s", baseURL, shortKey), userKey)
+	_, err = s.DB.ExecContext(ctx, "INSERT INTO Urls (original, short, userID) SELECT $1, $2, $3", URL, shortKey, userKey)
 
 	if err != nil {
 		return "", false, err
