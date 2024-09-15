@@ -4,26 +4,37 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/rodeorm/shortener/internal/core"
 )
 
 func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
-	w, userKey := h.GetUserIdentity(w, r)
-	var urlReq []core.URLWithCorrelationRequest
-	var urlRes []core.URLWithCorrelationResponse
-	bodyBytes, _ := io.ReadAll(r.Body)
-	err := json.Unmarshal(bodyBytes, &urlReq)
+	w, user, err := h.GetUserIdentity(w, r)
 
 	if err != nil {
-		fmt.Println("Ошибка", err)
+		log.Fatal("APIShortenBatch", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var (
+		urlReq []core.URLWithCorrelationRequest
+		urlRes []core.URLWithCorrelationResponse
+	)
+
+	bodyBytes, _ := io.ReadAll(r.Body)
+	err = json.Unmarshal(bodyBytes, &urlReq)
+
+	if err != nil {
+		log.Println("APIShortenBatch", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	for _, value := range urlReq {
-		shortURLKey, _, err := h.Storage.InsertURL(value.Origin, h.BaseURL, userKey)
+		shortURLKey, _, err := h.Storage.InsertURL(value.Origin, h.BaseURL, user)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusBadRequest)

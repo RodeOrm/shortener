@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/rodeorm/shortener/internal/core"
@@ -14,16 +15,22 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	url := core.URL{}
 	shortURL := core.ShortenURL{}
 
-	w, userKey := h.GetUserIdentity(w, r)
+	w, user, err := h.GetUserIdentity(w, r)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	bodyBytes, _ := io.ReadAll(r.Body)
-	err := json.Unmarshal(bodyBytes, &url)
+	err = json.Unmarshal(bodyBytes, &url)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	shortURLKey, isDuplicated, err := h.Storage.InsertURL(url.Key, h.BaseURL, userKey)
+	shortURLKey, isDuplicated, err := h.Storage.InsertURL(url.Key, h.BaseURL, user)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

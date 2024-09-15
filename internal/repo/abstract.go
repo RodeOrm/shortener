@@ -11,19 +11,15 @@ import (
 
 type AbstractStorage interface {
 	// InsertURL сохраняет соответствие между оригинальным и коротким адресом
-	InsertURL(URL, baseURL, userKey string) (string, bool, error)
-
+	InsertURL(URL, baseURL string, user *core.User) (string, bool, error)
 	// SelectOriginalURL возвращает оригинальный адрес на основании короткого; признак, что url ранее уже сокращался; признак, что url удален
 	SelectOriginalURL(shortURL string) (string, bool, bool, error)
-
 	//InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
 	InsertUser(Key int) (*core.User, error)
-
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-	SelectUserURLHistory(Key int) (*[]core.UserURLPair, error)
-
+	SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error)
 	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
-	DeleteURLs(URL, userKey string) (bool, error)
+	DeleteURLs(URL string, user *core.User) (bool, error)
 
 	// Закрыть соединение (только для СУБД)
 	CloseConnection()

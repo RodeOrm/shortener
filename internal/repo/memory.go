@@ -2,7 +2,6 @@ package repo
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/rodeorm/shortener/internal/core"
 )
@@ -15,13 +14,13 @@ type memoryStorage struct {
 }
 
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
-func (s memoryStorage) InsertURL(URL, baseURL, userKey string) (string, bool, error) {
+func (s memoryStorage) InsertURL(URL, baseURL string, user *core.User) (string, bool, error) {
 	if !core.CheckURLValidity(URL) {
 		return "", false, fmt.Errorf("невалидный URL: %s", URL)
 	}
 	key, isExist := s.originalToShort[URL]
 	if isExist {
-		s.insertUserURLPair(userKey, baseURL+"/"+key, URL)
+		s.insertUserURLPair(baseURL+"/"+key, URL, user)
 		return key, true, nil
 	}
 	key, _ = core.ReturnShortKey(5)
@@ -29,7 +28,7 @@ func (s memoryStorage) InsertURL(URL, baseURL, userKey string) (string, bool, er
 	s.originalToShort[URL] = key
 	s.shortToOriginal[key] = URL
 
-	s.insertUserURLPair(userKey, baseURL+"/"+key, URL)
+	s.insertUserURLPair(baseURL+"/"+key, URL, user)
 
 	return key, false, nil
 }
@@ -56,13 +55,9 @@ func (s memoryStorage) InsertUser(Key int) (*core.User, error) {
 }
 
 // InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
-func (s memoryStorage) insertUserURLPair(userKey, shorten, origin string) error {
-	userID, err := strconv.Atoi(userKey)
-	if err != nil {
-		return fmt.Errorf("ошибка обработки идентификатора пользователя: %s", err)
-	}
+func (s memoryStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
 
-	URLPair := &core.UserURLPair{UserKey: userID, Short: shorten, Origin: origin}
+	URLPair := &core.UserURLPair{UserKey: user.Key, Short: shorten, Origin: origin}
 
 	userURLPairs, isExist := s.userURLPairs[URLPair.UserKey]
 	if !isExist {
@@ -92,11 +87,11 @@ func (s memoryStorage) SelectUserByKey(Key int) (*core.User, error) {
 }
 
 // SelectUserURL возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-func (s memoryStorage) SelectUserURLHistory(Key int) (*[]core.UserURLPair, error) {
-	if s.userURLPairs[Key] == nil {
+func (s memoryStorage) SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error) {
+	if s.userURLPairs[user.Key] == nil {
 		return nil, fmt.Errorf("нет истории")
 	}
-	return s.userURLPairs[Key], nil
+	return s.userURLPairs[user.Key], nil
 }
 
 // getNextFreeKey возвращает ближайший свободный идентификатор пользователя
@@ -117,6 +112,6 @@ func (s memoryStorage) CloseConnection() {
 	fmt.Println("Закрыто")
 }
 
-func (s memoryStorage) DeleteURLs(URL, userKey string) (bool, error) {
+func (s memoryStorage) DeleteURLs(URL string, user *core.User) (bool, error) {
 	return true, nil
 }

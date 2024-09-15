@@ -7,36 +7,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/rodeorm/shortener/internal/core"
 )
 
-type fileStorage struct {
-	filePath     string
-	users        map[int]*core.User
-	userURLPairs map[int]*[]core.UserURLPair
-}
-
-func (s fileStorage) CheckFile(filePath string) error {
-	fileInfo, err := os.Stat(filePath)
-
-	if errors.Is(err, os.ErrNotExist) {
-		newFile, err := os.Create(filePath)
-		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-		newFile.Close()
-		fmt.Println("Создан файл: ", newFile.Name())
-		return nil
-	}
-	fmt.Println("Файл уже есть: ", fileInfo.Name())
-	return nil
-}
-
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
-func (s fileStorage) InsertURL(URL, baseURL, userKey string) (string, bool, error) {
+func (s fileStorage) InsertURL(URL, baseURL string, user *core.User) (string, bool, error) {
 
 	if !core.CheckURLValidity(URL) {
 		return "", false, fmt.Errorf("невалидный URL: %s", URL)
@@ -53,14 +29,17 @@ func (s fileStorage) InsertURL(URL, baseURL, userKey string) (string, bool, erro
 		log.Fatal(err)
 	}
 	defer f.Close()
+
 	pair := core.URLPair{Origin: URL, Short: key}
 	data, err := json.Marshal(pair)
 	if err != nil {
 		return "", false, err
 	}
-	s.insertUserURLPair(userKey, baseURL+"/"+key, URL)
+
+	s.insertUserURLPair(baseURL+"/"+key, URL, user)
 	data = append(data, '\n')
 	_, err = f.Write(data)
+
 	return key, false, err
 }
 
@@ -109,7 +88,7 @@ func (s fileStorage) SelectOriginalURL(shortURL string) (string, bool, bool, err
 
 // InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
 func (s fileStorage) InsertUser(Key int) (*core.User, error) {
-	if Key == 0 {
+	if Key <= 0 {
 		user := &core.User{Key: s.getNextFreeKey()}
 		s.users[user.Key] = user
 		return user, nil
@@ -123,13 +102,8 @@ func (s fileStorage) InsertUser(Key int) (*core.User, error) {
 }
 
 // InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
-func (s fileStorage) insertUserURLPair(userKey, shorten, origin string) error {
-	userID, err := strconv.Atoi(userKey)
-	if err != nil {
-		return fmt.Errorf("ошибка обработки идентификатора пользователя: %s", err)
-	}
-
-	URLPair := &core.UserURLPair{UserKey: userID, Short: shorten, Origin: origin}
+func (s fileStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
+	URLPair := &core.UserURLPair{UserKey: user.Key, Short: shorten, Origin: origin}
 
 	userURLPairs, isExist := s.userURLPairs[URLPair.UserKey]
 	if !isExist {
@@ -164,11 +138,11 @@ func (s fileStorage) SelectUserByKey(Key int) (*core.User, error) {
 }
 
 // SelectUserURL возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-func (s fileStorage) SelectUserURLHistory(Key int) (*[]core.UserURLPair, error) {
-	if s.userURLPairs[Key] == nil {
+func (s fileStorage) SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error) {
+	if s.userURLPairs[user.Key] == nil {
 		return nil, fmt.Errorf("нет истории")
 	}
-	return s.userURLPairs[Key], nil
+	return s.userURLPairs[user.Key], nil
 }
 
 // getNextFreeKey возвращает ближайший свободный идентификатор пользователя
@@ -189,6 +163,29 @@ func (s fileStorage) CloseConnection() {
 	fmt.Println("Закрыто")
 }
 
-func (s fileStorage) DeleteURLs(URL, userKey string) (bool, error) {
+func (s fileStorage) DeleteURLs(URL string, user *core.User) (bool, error) {
 	return true, nil
+}
+
+func (s fileStorage) CheckFile(filePath string) error {
+	fileInfo, err := os.Stat(filePath)
+
+	if errors.Is(err, os.ErrNotExist) {
+		newFile, err := os.Create(filePath)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+		newFile.Close()
+		fmt.Println("Создан файл: ", newFile.Name())
+		return nil
+	}
+	fmt.Println("Файл уже есть: ", fileInfo.Name())
+	return nil
+}
+
+type fileStorage struct {
+	filePath     string
+	users        map[int]*core.User
+	userURLPairs map[int]*[]core.UserURLPair
 }

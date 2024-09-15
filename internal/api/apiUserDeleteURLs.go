@@ -3,8 +3,8 @@ package api
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"strconv"
 )
 
 /*
@@ -12,20 +12,20 @@ APIUserDeleteURLsHandler принимает список идентификат�
 В случае успешного приёма запроса хендлер должен возвращать HTTP-статус 202 Accepted.
 */
 func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
-	w, userKey := h.GetUserIdentity(w, r)
-	_, err := strconv.Atoi(userKey)
+	w, user, err := h.GetUserIdentity(w, r)
 	if err != nil {
-		fmt.Println("Проблемы с получением пользователя", err)
+		log.Println("APIUserDeleteURLsHandler", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
+
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println("Проблемы с получением данных для удаления", err)
+		log.Println("APIUserDeleteURLsHandler", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	go h.Storage.DeleteURLs(string(bodyBytes), userKey)
+	go h.Storage.DeleteURLs(string(bodyBytes), user)
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprint(w, string(bodyBytes))
 }
