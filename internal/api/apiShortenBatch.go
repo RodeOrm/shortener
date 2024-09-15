@@ -6,13 +6,13 @@ import (
 	"io"
 	"net/http"
 
-	repo "github.com/rodeorm/shortener/internal/repo"
+	"github.com/rodeorm/shortener/internal/core"
 )
 
 func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
 	w, userKey := h.GetUserIdentity(w, r)
-	var urlReq []repo.URLWithCorrelationRequest
-	var urlRes []repo.URLWithCorrelationResponse
+	var urlReq []core.URLWithCorrelationRequest
+	var urlRes []core.URLWithCorrelationResponse
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err := json.Unmarshal(bodyBytes, &urlReq)
 
@@ -29,7 +29,7 @@ func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		urlResPart := repo.URLWithCorrelationResponse{CorID: value.CorID, Short: h.BaseURL + "/" + shortURLKey}
+		urlResPart := core.URLWithCorrelationResponse{CorID: value.CorID, Short: h.BaseURL + "/" + shortURLKey}
 		urlRes = append(urlRes, urlResPart)
 	}
 

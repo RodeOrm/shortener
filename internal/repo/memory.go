@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/rodeorm/shortener/internal/logic"
+	"github.com/rodeorm/shortener/internal/core"
 )
 
 type memoryStorage struct {
 	originalToShort map[string]string
 	shortToOriginal map[string]string
-	users           map[int]*User
-	userURLPairs    map[int]*[]UserURLPair
+	users           map[int]*core.User
+	userURLPairs    map[int]*[]core.UserURLPair
 }
 
-//InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
+// InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
 func (s memoryStorage) InsertURL(URL, baseURL, userKey string) (string, bool, error) {
-	if !logic.CheckURLValidity(URL) {
+	if !core.CheckURLValidity(URL) {
 		return "", false, fmt.Errorf("невалидный URL: %s", URL)
 	}
 	key, isExist := s.originalToShort[URL]
@@ -24,7 +24,7 @@ func (s memoryStorage) InsertURL(URL, baseURL, userKey string) (string, bool, er
 		s.insertUserURLPair(userKey, baseURL+"/"+key, URL)
 		return key, true, nil
 	}
-	key, _ = logic.ReturnShortKey(5)
+	key, _ = core.ReturnShortKey(5)
 
 	s.originalToShort[URL] = key
 	s.shortToOriginal[key] = URL
@@ -34,41 +34,41 @@ func (s memoryStorage) InsertURL(URL, baseURL, userKey string) (string, bool, er
 	return key, false, nil
 }
 
-//SelectOriginalURL принимает на вход короткий URL (относительный, без имени домена), извлекает из него ключ и возвращает оригинальный URL из хранилища
+// SelectOriginalURL принимает на вход короткий URL (относительный, без имени домена), извлекает из него ключ и возвращает оригинальный URL из хранилища
 func (s memoryStorage) SelectOriginalURL(shortURL string) (string, bool, bool, error) {
 	originalURL, isExist := s.shortToOriginal[shortURL]
 	return originalURL, isExist, false, nil
 }
 
-//InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
-func (s memoryStorage) InsertUser(Key int) (*User, error) {
+// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
+func (s memoryStorage) InsertUser(Key int) (*core.User, error) {
 	if Key == 0 {
-		user := &User{Key: s.getNextFreeKey()}
+		user := &core.User{Key: s.getNextFreeKey()}
 		s.users[user.Key] = user
 		return user, nil
 	}
 	user, isExist := s.users[Key]
 	if !isExist {
-		user = &User{Key: Key}
+		user = &core.User{Key: Key}
 		s.users[Key] = user
 	}
 	return user, nil
 }
 
-//InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
+// InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
 func (s memoryStorage) insertUserURLPair(userKey, shorten, origin string) error {
 	userID, err := strconv.Atoi(userKey)
 	if err != nil {
 		return fmt.Errorf("ошибка обработки идентификатора пользователя: %s", err)
 	}
 
-	URLPair := &UserURLPair{UserKey: userID, Short: shorten, Origin: origin}
+	URLPair := &core.UserURLPair{UserKey: userID, Short: shorten, Origin: origin}
 
 	userURLPairs, isExist := s.userURLPairs[URLPair.UserKey]
 	if !isExist {
-		userURLPair := *URLPair
-		new := make([]UserURLPair, 0, 10)
-		new = append(new, userURLPair)
+		userURLPair := URLPair
+		new := make([]core.UserURLPair, 0, 10)
+		new = append(new, *userURLPair)
 		s.userURLPairs[URLPair.UserKey] = &new
 		return nil
 	}
@@ -83,7 +83,7 @@ func (s memoryStorage) insertUserURLPair(userKey, shorten, origin string) error 
 	return nil
 }
 
-func (s memoryStorage) SelectUserByKey(Key int) (*User, error) {
+func (s memoryStorage) SelectUserByKey(Key int) (*core.User, error) {
 	user, isExist := s.users[Key]
 	if !isExist {
 		return nil, fmt.Errorf("нет пользователя с ключом: %d", Key)
@@ -91,15 +91,15 @@ func (s memoryStorage) SelectUserByKey(Key int) (*User, error) {
 	return user, nil
 }
 
-//SelectUserURL возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-func (s memoryStorage) SelectUserURLHistory(Key int) (*[]UserURLPair, error) {
+// SelectUserURL возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
+func (s memoryStorage) SelectUserURLHistory(Key int) (*[]core.UserURLPair, error) {
 	if s.userURLPairs[Key] == nil {
 		return nil, fmt.Errorf("нет истории")
 	}
 	return s.userURLPairs[Key], nil
 }
 
-//getNextFreeKey возвращает ближайший свободный идентификатор пользователя
+// getNextFreeKey возвращает ближайший свободный идентификатор пользователя
 func (s memoryStorage) getNextFreeKey() int {
 	var maxNumber int
 	for maxNumber = range s.users {

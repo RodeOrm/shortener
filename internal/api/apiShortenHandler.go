@@ -6,13 +6,13 @@ import (
 	"io"
 	"net/http"
 
-	repo "github.com/rodeorm/shortener/internal/repo"
+	"github.com/rodeorm/shortener/internal/core"
 )
 
 // APIShortenHandler принимает в теле запроса JSON-объект {"url":"<some_url>"} и возвращает в ответ объект {"result":"<shorten_url>"}.
 func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
-	url := repo.URL{}
-	shortURL := repo.ShortenURL{}
+	url := core.URL{}
+	shortURL := core.ShortenURL{}
 
 	w, userKey := h.GetUserIdentity(w, r)
 	bodyBytes, _ := io.ReadAll(r.Body)

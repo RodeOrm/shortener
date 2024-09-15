@@ -17,11 +17,13 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	URLHistory, err := h.Storage.SelectUserURLHistory(userID)
+
 	if err != nil {
 		fmt.Println("Проблемы с получением истории пользователя", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
+
 	bodyBytes, err := json.Marshal(URLHistory)
 	if err != nil {
 		fmt.Println("Проблемы при маршалинге истории урл", err)

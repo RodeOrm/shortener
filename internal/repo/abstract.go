@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/rodeorm/shortener/internal/core"
 )
 
 type AbstractStorage interface {
@@ -14,10 +15,10 @@ type AbstractStorage interface {
 	SelectOriginalURL(shortURL string) (string, bool, bool, error)
 
 	//InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
-	InsertUser(Key int) (*User, error)
+	InsertUser(Key int) (*core.User, error)
 
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-	SelectUserURLHistory(Key int) (*[]UserURLPair, error)
+	SelectUserURLHistory(Key int) (*[]core.UserURLPair, error)
 
 	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
 	DeleteURLs(URL, userKey string) (bool, error)
@@ -49,16 +50,16 @@ func NewStorage(filePath, dbConnectionString string) AbstractStorage {
 func InitMemoryStorage() *memoryStorage {
 	ots := make(map[string]string)
 	sto := make(map[string]string)
-	usr := make(map[int]*User)
-	usrURL := make(map[int]*[]UserURLPair)
+	usr := make(map[int]*core.User)
+	usrURL := make(map[int]*[]core.UserURLPair)
 	storage := memoryStorage{originalToShort: ots, shortToOriginal: sto, users: usr, userURLPairs: usrURL}
 	return &storage
 }
 
 // InitFileStorage создает хранилище данных на файловой системе
 func InitFileStorage(filePath string) (*fileStorage, error) {
-	usr := make(map[int]*User)
-	usrURL := make(map[int]*[]UserURLPair)
+	usr := make(map[int]*core.User)
+	usrURL := make(map[int]*[]core.UserURLPair)
 	storage := fileStorage{filePath: filePath, users: usr, userURLPairs: usrURL}
 	err := storage.CheckFile(filePath)
 	if err != nil {
