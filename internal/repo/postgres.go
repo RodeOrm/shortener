@@ -24,22 +24,15 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 	ctx := context.TODO()
 	var isUnathorized bool
 	//Ищем пользователя
-	err := s.DB.QueryRowContext(ctx, "SELECT ID from Users WHERE ID = $1", fmt.Sprint(Key)).Scan(&Key)
+	err := s.DB.GetContext(ctx, &Key, "SELECT ID from Users WHERE ID = $1", Key)
 
 	//При любой ошибке (нет пользователя с таким ИД или передан 0 в Key) получаем нового
 	if err != nil {
 		isUnathorized = true
-		// log.Println("InsertUser 1", err)
-		sqlStatement := `
-		INSERT INTO Users (Name)
-		VALUES ($1)
-		RETURNING id`
-		err := s.DB.QueryRowContext(ctx, sqlStatement, time.Now().Format(time.DateTime)).Scan(&Key)
+		err := s.DB.GetContext(ctx, &Key, "INSERT INTO Users (Name) VALUES ($1) RETURNING ID", time.Now().Format(time.DateTime))
 		if err != nil {
-			// log.Println("InsertUser 2", err)
 			return nil, isUnathorized, err
 		}
-		// log.Println("InsertUser 3", isUnathorized, err)
 	}
 
 	return &core.User{Key: Key}, isUnathorized, nil
@@ -56,8 +49,8 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 	var short string
 
 	// Проверяем на то, что ранее пользователь не сокращал URL
-	//s.DB.QueryRowContext(ctx, "SELECT short from Urls WHERE UserID = $1 AND original = $2", userKey, URL).Scan(&short)
-	s.DB.QueryRowContext(ctx, "SELECT short from Urls WHERE original = $1", URL).Scan(&short)
+	// s.DB.QueryRowContext(ctx, "SELECT short from Urls WHERE original = $1", URL).Scan(&short)
+	s.DB.GetContext(ctx, &short, "SELECT short from Urls WHERE original = $1", URL)
 	if short != "" {
 		return short, true, nil
 	}

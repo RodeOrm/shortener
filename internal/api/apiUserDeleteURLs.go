@@ -19,7 +19,7 @@ func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err != nil {
-		log.Println("APIUserDeleteURLsHandler", err)
+		log.Println("APIUserDeleteURLsHandler 1", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -27,7 +27,7 @@ func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request)
 	bodyBytes, err := io.ReadAll(r.Body)
 
 	if err != nil {
-		log.Println("APIUserDeleteURLsHandler", err)
+		log.Println("APIUserDeleteURLsHandler 2", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}

@@ -26,7 +26,7 @@ func ServerStart(s *Server) error {
 
 	r.HandleFunc("/", s.BadRequestHandler)
 
-	r.Use(middleware.ZipMiddleware, middleware.WithLogging)
+	r.Use(middleware.ZipMiddleware, middleware.LogMiddleware)
 
 	srv := &http.Server{
 		Handler:      r,

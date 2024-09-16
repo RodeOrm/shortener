@@ -11,7 +11,7 @@ var bytes = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 0
 
 const MySecret string = "top secret key"
 
-// Encrypt шифрует идентификатор
+// Encrypt шифрует идентификатор пользователя
 func Encrypt(text string) (string, error) {
 	key := sha256.Sum256([]byte(MySecret))
 	block, err := aes.NewCipher(key[:])
@@ -25,7 +25,7 @@ func Encrypt(text string) (string, error) {
 	return Encode(cipherText), nil
 }
 
-// Decrypt расшифровывает идентификатор
+// Decrypt расшифровывает идентификатор пользователя
 func Decrypt(text string) (string, error) {
 	key := sha256.Sum256([]byte(MySecret))
 	_, err := base64.StdEncoding.DecodeString(text)

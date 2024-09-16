@@ -25,10 +25,9 @@ func (h Server) GetUserIdentity(w http.ResponseWriter, r *http.Request) (http.Re
 	}
 	user, isUnathorized, err := h.Storage.InsertUser(key)
 	if isUnathorized {
-		log.Println(err)
+		log.Println("GetUserIdentity", err)
 	}
 
-	// 	fmt.Println("Отладочный вывод", user, "Не был авторизован", isUnathorized)
 	http.SetCookie(w, cookie.PutUserKeyToCookie(fmt.Sprint(user.Key)))
 	return w, user, isUnathorized, nil
 }

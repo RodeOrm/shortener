@@ -21,7 +21,6 @@ func (h Server) RootURLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if isExist {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Println("Оригинальный url, на который будет редирект: ", originalURL)
 		w.Header().Set("Location", originalURL)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		fmt.Fprintf(w, "%s", originalURL)

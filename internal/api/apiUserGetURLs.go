@@ -19,13 +19,13 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Println("APIUserGetURLsHandler", err)
+		log.Println("APIUserGetURLsHandler 1", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	URLHistory, err := h.Storage.SelectUserURLHistory(user)
 	if err != nil {
-		log.Println("APIUserGetURLsHandler", err)
+		log.Println("APIUserGetURLsHandler 2", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
@@ -40,7 +40,7 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, err := json.Marshal(history)
 	if err != nil {
-		fmt.Println("Проблемы при маршалинге истории урл", err)
+		log.Println("APIUserGetURLsHandler 3", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
