@@ -20,29 +20,29 @@ type postgresStorage struct {
 }
 
 // InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
-func (s postgresStorage) InsertUser(Key int) (*core.User, error) {
+func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 	ctx := context.TODO()
-
+	var isUnathorized bool
 	//Ищем пользователя
 	err := s.DB.QueryRowContext(ctx, "SELECT ID from Users WHERE ID = $1", fmt.Sprint(Key)).Scan(&Key)
 
-	// fmt.Println("Отладочный вывод InsertUser", err)
-
 	//При любой ошибке (нет пользователя с таким ИД или передан 0 в Key) получаем нового
 	if err != nil {
-		log.Println("InsertUser", err)
+		isUnathorized = true
+		// log.Println("InsertUser 1", err)
 		sqlStatement := `
 		INSERT INTO Users (Name)
 		VALUES ($1)
 		RETURNING id`
 		err := s.DB.QueryRowContext(ctx, sqlStatement, time.Now().Format(time.DateTime)).Scan(&Key)
 		if err != nil {
-			log.Println("InsertUser", err)
-			return nil, err
+			// log.Println("InsertUser 2", err)
+			return nil, isUnathorized, err
 		}
+		// log.Println("InsertUser 3", isUnathorized, err)
 	}
 
-	return &core.User{Key: Key}, nil
+	return &core.User{Key: Key}, isUnathorized, nil
 }
 
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа и возвращает ключ (либо возвращает ранее созданный ключ)

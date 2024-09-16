@@ -14,7 +14,7 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 	w, user, isUnathorized, err := h.GetUserIdentity(w, r)
 
 	if isUnathorized {
-		w.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 

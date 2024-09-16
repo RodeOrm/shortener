@@ -15,7 +15,7 @@ type AbstractStorage interface {
 	// SelectOriginalURL возвращает оригинальный адрес на основании короткого; признак, что url ранее уже сокращался; признак, что url удален
 	SelectOriginalURL(shortURL string) (string, bool, bool, error)
 	//InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
-	InsertUser(Key int) (*core.User, error)
+	InsertUser(Key int) (*core.User, bool, error)
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
 	SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error)
 	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.

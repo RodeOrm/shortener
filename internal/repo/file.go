@@ -87,18 +87,19 @@ func (s fileStorage) SelectOriginalURL(shortURL string) (string, bool, bool, err
 }
 
 // InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
-func (s fileStorage) InsertUser(Key int) (*core.User, error) {
+func (s fileStorage) InsertUser(Key int) (*core.User, bool, error) {
 	if Key <= 0 {
 		user := &core.User{Key: s.getNextFreeKey()}
 		s.users[user.Key] = user
-		return user, nil
+		return user, true, nil
 	}
 	user, isExist := s.users[Key]
 	if !isExist {
 		user = &core.User{Key: Key}
 		s.users[Key] = user
+		return user, true, nil
 	}
-	return user, nil
+	return user, false, nil
 }
 
 // InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
