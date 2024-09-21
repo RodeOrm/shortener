@@ -19,7 +19,7 @@ type postgresStorage struct {
 	deleteQueue      chan string // канал для удаления URL
 }
 
-// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
+// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии, а также параметр что пользователь не был авторизован по переданному идентификатору
 func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 	ctx := context.TODO()
 	var isUnathorized bool
@@ -38,7 +38,11 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 	return &core.User{Key: Key}, isUnathorized, nil
 }
 
-// InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа и возвращает ключ (либо возвращает ранее созданный ключ)
+/*
+	InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа
+
+Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
+*/
 func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string, bool, error) {
 	if !core.CheckURLValidity(URL) {
 		return "", false, fmt.Errorf("невалидный URL: %s", URL)

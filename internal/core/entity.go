@@ -36,6 +36,5 @@ type URLWithCorrelationResponse struct {
 
 type User struct {
 	Key  int
-	Sign string
 	Urls []UserURLPair
 }

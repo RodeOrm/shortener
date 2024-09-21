@@ -10,14 +10,23 @@ import (
 )
 
 type AbstractStorage interface {
-	// InsertURL сохраняет соответствие между оригинальным и коротким адресом
+	/*
+		InsertURL принимает оригинальный URL, базовый урл для генерации коротких адресов и пользователя.
+		Генерирует уникальный ключ для короткого адреса, сохраняет соответствие оригинального URL и ключа.
+
+		Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
+	*/
 	InsertURL(URL, baseURL string, user *core.User) (string, bool, error)
+
 	// SelectOriginalURL возвращает оригинальный адрес на основании короткого; признак, что url ранее уже сокращался; признак, что url удален
 	SelectOriginalURL(shortURL string) (string, bool, bool, error)
-	//InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
+
+	// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии, а также значение "отсутствие авторизации по переданному идентификатору"
 	InsertUser(Key int) (*core.User, bool, error)
+
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
 	SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error)
+
 	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
 	DeleteURLs(URL string, user *core.User) (bool, error)
 
