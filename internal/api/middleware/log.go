@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func LogMiddleware(h http.Handler) http.Handler {
+func WithLog(h http.Handler) http.Handler {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 

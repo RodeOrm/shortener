@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"sync"
@@ -23,13 +24,20 @@ type postgresStorage struct {
 func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 	ctx := context.TODO()
 	var isUnathorized bool
+
+	nstmtSelectUser, err := s.DB.PrepareNamed(`SELECT ID from Users WHERE ID = $1`)
+
 	//Ищем пользователя
-	err := s.DB.GetContext(ctx, &Key, "SELECT ID from Users WHERE ID = $1", Key)
+	nstmtSelectUser.GetContext(ctx, &Key, Key)
 
 	//При любой ошибке (нет пользователя с таким ИД или передан 0 в Key) получаем нового
 	if err != nil {
+		nstmtInsertUser, err := s.DB.PrepareNamed(`INSERT INTO Users (Name) VALUES ($1) RETURNING ID`)
 		isUnathorized = true
-		err := s.DB.GetContext(ctx, &Key, "INSERT INTO Users (Name) VALUES ($1) RETURNING ID", time.Now().Format(time.DateTime))
+		if err != nil {
+			return nil, isUnathorized, err
+		}
+		err = nstmtInsertUser.GetContext(ctx, &Key, time.Now().Format(time.DateTime))
 		if err != nil {
 			return nil, isUnathorized, err
 		}
@@ -53,9 +61,13 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 	var short string
 
 	// Проверяем на то, что ранее пользователь не сокращал URL
-	// s.DB.QueryRowContext(ctx, "SELECT short from Urls WHERE original = $1", URL).Scan(&short)
-	s.DB.GetContext(ctx, &short, "SELECT short from Urls WHERE original = $1", URL)
-	if short != "" {
+	nstmtSelectShortURL, err := s.DB.PrepareNamed(`SELECT short from Urls WHERE original = $1`)
+	if err != nil {
+		return "", false, err
+	}
+
+	err = nstmtSelectShortURL.GetContext(ctx, &short, URL)
+	if err != sql.ErrNoRows {
 		return short, true, nil
 	}
 	// Вставляем новый URL
@@ -64,8 +76,24 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 		return "", false, err
 	}
 
-	_, err = s.DB.ExecContext(ctx, "INSERT INTO Urls (original, short, userID) SELECT $1, $2, $3", URL, shortKey, user.Key)
+	arg := map[string]interface{}{
+		"original": URL,
+		"shortKey": shortKey,
+		"userID":   user.Key,
+	}
 
+	nstmtInsertURL, args, err := sqlx.Named("INSERT INTO Urls (original, short, userID) SELECT :original, :shortKey, :userID", arg)
+	if err != nil {
+		return "", false, err
+	}
+
+	nstmtInsertURL, args, err = sqlx.In(nstmtInsertURL, args...)
+	if err != nil {
+		return "", false, err
+	}
+
+	nstmtInsertURL = s.DB.Rebind(nstmtInsertURL)
+	_, err = s.DB.ExecContext(ctx, nstmtInsertURL, args...)
 	if err != nil {
 		return "", false, err
 	}
