@@ -56,40 +56,42 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 	}
 
 	ctx := context.TODO()
-
 	var short string
 
 	s.preparedStatements["nstmtSelectShortURL"].GetContext(ctx, &short, URL)
 	if short != "" {
 		return short, true, nil
 	}
-	// Вставляем новый URL
+
 	shortKey, err := core.ReturnShortKey(5)
 	if err != nil {
 		return "", false, err
 	}
+	s.preparedStatements["nstmtInsertURL"].ExecContext(ctx, URL, shortKey, user.Key)
 
-	arg := map[string]interface{}{
-		"original": URL,
-		"shortKey": shortKey,
-		"userID":   user.Key,
-	}
+	/*
+		arg := map[string]interface{}{
+			"original": URL,
+			"shortKey": shortKey,
+			"userID":   user.Key,
+		}
 
-	nstmtInsertURL, args, err := sqlx.Named("INSERT INTO Urls (original, short, userID) SELECT :original, :shortKey, :userID", arg)
-	if err != nil {
-		return "", false, err
-	}
+		nstmtInsertURL, args, err := sqlx.Named("INSERT INTO Urls (original, short, userID) SELECT :original, :shortKey, :userID", arg)
+		if err != nil {
+			return "", false, err
+		}
 
-	nstmtInsertURL, args, err = sqlx.In(nstmtInsertURL, args...)
-	if err != nil {
-		return "", false, err
-	}
+		nstmtInsertURL, args, err = sqlx.In(nstmtInsertURL, args...)
+		if err != nil {
+			return "", false, err
+		}
 
-	nstmtInsertURL = s.DB.Rebind(nstmtInsertURL)
-	_, err = s.DB.ExecContext(ctx, nstmtInsertURL, args...)
-	if err != nil {
-		return "", false, err
-	}
+		nstmtInsertURL = s.DB.Rebind(nstmtInsertURL)
+		_, err = s.DB.ExecContext(ctx, nstmtInsertURL, args...)
+		if err != nil {
+			return "", false, err
+		}
+	*/
 
 	return shortKey, false, nil
 

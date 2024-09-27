@@ -133,9 +133,14 @@ func (s *postgresStorage) prepareStatements() error {
 	if err != nil {
 		return err
 	}
+	nstmtInsertURL, err := s.DB.Preparex(`INSERT INTO Urls (original, short, userID) SELECT $1, $2, $3`)
+	if err != nil {
+		return err
+	}
 
 	s.preparedStatements["nstmtSelectUser"] = nstmtSelectUser
 	s.preparedStatements["nstmtInsertUser"] = nstmtInsertUser
 	s.preparedStatements["nstmtSelectShortURL"] = nstmtSelectShortURL
+	s.preparedStatements["nstmtInsertURL"] = nstmtInsertURL
 	return nil
 }
