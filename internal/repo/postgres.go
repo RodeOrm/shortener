@@ -36,7 +36,7 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 	//При любой ошибке (нет пользователя с таким ИД или передан 0 в Key) получаем нового
 	if err != nil {
 		isUnathorized = true
-		err = s.preparedStatements["stmtInsertUser"].GetContext(ctx, &Key, time.Now().Format(time.DateTime))
+		err = s.preparedStatements["nstmtInsertUser"].GetContext(ctx, &Key, time.Now().Format(time.DateTime))
 		if err != nil {
 			return nil, isUnathorized, err
 		}
