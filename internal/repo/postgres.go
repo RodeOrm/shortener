@@ -21,17 +21,21 @@ type postgresStorage struct {
 
 // InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии, а также параметр что пользователь не был авторизован по переданному идентификатору
 func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
+
 	ctx := context.TODO()
 	var isUnathorized bool
 
-	nstmtSelectUser, err := s.DB.PrepareNamed(`SELECT ID from Users WHERE ID = $1`)
-
+	nstmtSelectUser, err := s.DB.Preparex(`SELECT ID from Users WHERE ID = $1`)
+	if err != nil {
+		return nil, false, err
+	}
+	//user := core.User{Key: Key}
 	//Ищем пользователя
-	nstmtSelectUser.GetContext(ctx, &Key, Key)
+	err = nstmtSelectUser.GetContext(ctx, &Key, Key)
 
 	//При любой ошибке (нет пользователя с таким ИД или передан 0 в Key) получаем нового
 	if err != nil {
-		nstmtInsertUser, err := s.DB.PrepareNamed(`INSERT INTO Users (Name) VALUES ($1) RETURNING ID`)
+		nstmtInsertUser, err := s.DB.Preparex(`INSERT INTO Users (Name) VALUES ($1) RETURNING ID`)
 		isUnathorized = true
 		if err != nil {
 			return nil, isUnathorized, err
@@ -41,7 +45,6 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 			return nil, isUnathorized, err
 		}
 	}
-
 	return &core.User{Key: Key}, isUnathorized, nil
 }
 
@@ -51,6 +54,7 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
 */
 func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string, bool, error) {
+
 	if !core.CheckURLValidity(URL) {
 		return "", false, fmt.Errorf("невалидный URL: %s", URL)
 	}
@@ -60,7 +64,7 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 	var short string
 
 	// Проверяем на то, что ранее пользователь не сокращал URL
-	nstmtSelectShortURL, err := s.DB.PrepareNamed(`SELECT short from Urls WHERE original = $1`)
+	nstmtSelectShortURL, err := s.DB.Preparex(`SELECT short from Urls WHERE original = $1`)
 	if err != nil {
 		return "", false, err
 	}
@@ -98,6 +102,7 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 	}
 
 	return shortKey, false, nil
+
 }
 
 func (s postgresStorage) SelectOriginalURL(shortURL string) (string, bool, bool, error) {
