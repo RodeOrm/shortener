@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"sync"
@@ -115,9 +114,7 @@ func (s postgresStorage) SelectOriginalURL(shortURL string) (string, bool, bool,
 		return "", false, false, err
 	}
 
-	if err != sql.ErrNoRows {
-		isShortened = true
-	}
+	isShortened = true
 
 	return original, isShortened, isDeleted, nil
 }
