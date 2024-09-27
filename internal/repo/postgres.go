@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"sync"
@@ -66,8 +65,8 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 		return "", false, err
 	}
 
-	err = nstmtSelectShortURL.GetContext(ctx, &short, URL)
-	if err != sql.ErrNoRows {
+	nstmtSelectShortURL.GetContext(ctx, &short, URL)
+	if short != "" {
 		return short, true, nil
 	}
 	// Вставляем новый URL
