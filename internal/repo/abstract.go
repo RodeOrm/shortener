@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rodeorm/shortener/internal/core"
@@ -97,7 +98,7 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 		return nil, err
 	}
 	delQueue := make(chan string)
-	storage := postgresStorage{DB: db, ConnectionString: connectionString, deleteQueue: delQueue}
+	storage := postgresStorage{DB: db, ConnectionString: connectionString, deleteQueue: delQueue, preparedStatements: map[string]*sqlx.Stmt{}}
 	err = storage.createTables(ctx)
 	if err != nil {
 		return nil, err
@@ -105,6 +106,7 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 
 	err = storage.prepareStatements()
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
@@ -116,6 +118,7 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 }
 
 func (s *postgresStorage) prepareStatements() error {
+
 	nstmtSelectUser, err := s.DB.Preparex(`SELECT ID from Users WHERE ID = $1`)
 	if err != nil {
 		return err
