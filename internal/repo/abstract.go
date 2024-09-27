@@ -99,7 +99,11 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 	delQueue := make(chan string)
 	storage := postgresStorage{DB: db, ConnectionString: connectionString, deleteQueue: delQueue}
 	err = storage.createTables(ctx)
+	if err != nil {
+		return nil, err
+	}
 
+	err = storage.prepareStatements()
 	if err != nil {
 		return nil, err
 	}
@@ -109,4 +113,26 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 	)
 
 	return &storage, nil
+}
+
+func (s *postgresStorage) prepareStatements() error {
+	nstmtSelectUser, err := s.DB.Preparex(`SELECT ID from Users WHERE ID = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtInsertUser, err := s.DB.Preparex(`INSERT INTO Users (Name) VALUES ($1) RETURNING ID`)
+	if err != nil {
+		return err
+	}
+
+	nstmtSelectShortURL, err := s.DB.Preparex(`SELECT short from Urls WHERE original = $1`)
+	if err != nil {
+		return err
+	}
+
+	s.preparedStatements["nstmtSelectUser"] = nstmtSelectUser
+	s.preparedStatements["nstmtInsertUser"] = nstmtInsertUser
+	s.preparedStatements["nstmtSelectShortURL"] = nstmtSelectShortURL
+	return nil
 }

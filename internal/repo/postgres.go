@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"sync"
@@ -13,34 +14,30 @@ import (
 )
 
 type postgresStorage struct {
-	DB               *sqlx.DB    // Драйвер подключения к СУБД
-	DBName           string      // Имя БД из конфиг.файла
-	ConnectionString string      // Строка подключения из конфиг.файла
-	deleteQueue      chan string // канал для удаления URL
+	DB                 *sqlx.DB    // Драйвер подключения к СУБД
+	DBName             string      // Имя БД из конфиг.файла
+	ConnectionString   string      // Строка подключения из конфиг.файла
+	deleteQueue        chan string // канал для удаления URL
+	preparedStatements map[string]*sqlx.Stmt
 }
 
-// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии, а также параметр что пользователь не был авторизован по переданному идентификатору
+/*
+InsertUser принимает идентификатор пользователя
+
+Возвращает по идентификатору уже имеющегося в наличии пользователя, если такового нет, то создает нового и возвращает что пользователь не был авторизован по переданному идентификатору
+*/
 func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 
 	ctx := context.TODO()
 	var isUnathorized bool
 
-	nstmtSelectUser, err := s.DB.Preparex(`SELECT ID from Users WHERE ID = $1`)
-	if err != nil {
-		return nil, false, err
-	}
-	//user := core.User{Key: Key}
 	//Ищем пользователя
-	err = nstmtSelectUser.GetContext(ctx, &Key, Key)
+	err := s.preparedStatements["nstmtSelectUser"].GetContext(ctx, &Key, Key)
 
 	//При любой ошибке (нет пользователя с таким ИД или передан 0 в Key) получаем нового
 	if err != nil {
-		nstmtInsertUser, err := s.DB.Preparex(`INSERT INTO Users (Name) VALUES ($1) RETURNING ID`)
 		isUnathorized = true
-		if err != nil {
-			return nil, isUnathorized, err
-		}
-		err = nstmtInsertUser.GetContext(ctx, &Key, time.Now().Format(time.DateTime))
+		err = s.preparedStatements["stmtInsertUser"].GetContext(ctx, &Key, time.Now().Format(time.DateTime))
 		if err != nil {
 			return nil, isUnathorized, err
 		}
@@ -49,7 +46,7 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 }
 
 /*
-	InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа
+	InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа.
 
 Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
 */
@@ -63,13 +60,7 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 
 	var short string
 
-	// Проверяем на то, что ранее пользователь не сокращал URL
-	nstmtSelectShortURL, err := s.DB.Preparex(`SELECT short from Urls WHERE original = $1`)
-	if err != nil {
-		return "", false, err
-	}
-
-	nstmtSelectShortURL.GetContext(ctx, &short, URL)
+	s.preparedStatements["nstmtSelectShortURL"].GetContext(ctx, &short, URL)
 	if short != "" {
 		return short, true, nil
 	}
@@ -105,11 +96,17 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 
 }
 
+/*
+	SelectOriginalURL принимает короткий урл.
+
+Возвращает соответствующий оригинальный урл, признак, что url ранее уже сокращался; признак, что url удален
+*/
 func (s postgresStorage) SelectOriginalURL(shortURL string) (string, bool, bool, error) {
 	ctx := context.TODO()
 	var (
-		original  string
-		isDeleted bool
+		original    string
+		isDeleted   bool
+		isShortened bool
 	)
 
 	err := s.DB.QueryRowContext(ctx, "SELECT original, isDeleted FROM Urls WHERE short = $1", shortURL).Scan(&original, &isDeleted)
@@ -117,15 +114,12 @@ func (s postgresStorage) SelectOriginalURL(shortURL string) (string, bool, bool,
 		log.Println("SelectOriginalURL", err)
 		return "", false, false, err
 	}
-	if isDeleted {
-		return original, true, true, nil
+
+	if err != sql.ErrNoRows {
+		isShortened = true
 	}
 
-	if original != "" {
-		return original, true, false, nil
-	}
-
-	return "", false, false, nil
+	return original, isShortened, isDeleted, nil
 }
 
 // SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
