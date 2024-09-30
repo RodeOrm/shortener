@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/rodeorm/shortener/internal/core"
 )
 
 /*
@@ -31,7 +33,11 @@ func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	go h.Storage.DeleteURLs(string(bodyBytes), user)
+
+	// Помещаем URL в очередь на асинхронное удаление
+	urls, err := core.GetURLsFromString(string(bodyBytes), user)
+	h.Storage.DeleteURLs(urls)
+
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprint(w, string(bodyBytes))
 }

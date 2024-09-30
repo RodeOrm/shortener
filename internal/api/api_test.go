@@ -9,12 +9,11 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/internal/repo"
 	"github.com/rodeorm/shortener/mocks"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAPIShorten(t *testing.T) {

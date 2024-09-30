@@ -47,18 +47,17 @@ func (mr *MockAbstractStorageMockRecorder) CloseConnection() *gomock.Call {
 }
 
 // DeleteURLs mocks base method.
-func (m *MockAbstractStorage) DeleteURLs(arg0 string, arg1 *core.User) (bool, error) {
+func (m *MockAbstractStorage) DeleteURLs(arg0 []core.URL) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteURLs", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "DeleteURLs", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteURLs indicates an expected call of DeleteURLs.
-func (mr *MockAbstractStorageMockRecorder) DeleteURLs(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockAbstractStorageMockRecorder) DeleteURLs(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteURLs", reflect.TypeOf((*MockAbstractStorage)(nil).DeleteURLs), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteURLs", reflect.TypeOf((*MockAbstractStorage)(nil).DeleteURLs), arg0)
 }
 
 // InsertURL mocks base method.

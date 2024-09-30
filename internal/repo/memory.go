@@ -113,6 +113,6 @@ func (s memoryStorage) CloseConnection() {
 	fmt.Println("Закрыто")
 }
 
-func (s memoryStorage) DeleteURLs(URL string, user *core.User) (bool, error) {
-	return true, nil
+func (s memoryStorage) DeleteURLs(URLs []core.URL) error {
+	return nil
 }

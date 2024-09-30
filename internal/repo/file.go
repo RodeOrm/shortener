@@ -164,8 +164,8 @@ func (s fileStorage) CloseConnection() {
 	fmt.Println("Закрыто")
 }
 
-func (s fileStorage) DeleteURLs(URL string, user *core.User) (bool, error) {
-	return true, nil
+func (s fileStorage) DeleteURLs(URLs []core.URL) error {
+	return nil
 }
 
 func (s fileStorage) CheckFile(filePath string) error {

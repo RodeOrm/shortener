@@ -29,7 +29,7 @@ type AbstractStorage interface {
 	SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error)
 
 	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
-	DeleteURLs(URL string, user *core.User) (bool, error)
+	DeleteURLs(URLs []core.URL) error
 
 	// Закрыть соединение (только для СУБД)
 	CloseConnection()
@@ -138,9 +138,30 @@ func (s *postgresStorage) prepareStatements() error {
 		return err
 	}
 
-	s.preparedStatements["nstmtSelectUser"] = nstmtSelectUser
-	s.preparedStatements["nstmtInsertUser"] = nstmtInsertUser
-	s.preparedStatements["nstmtSelectShortURL"] = nstmtSelectShortURL
-	s.preparedStatements["nstmtInsertURL"] = nstmtInsertURL
+	nstmtSelectOriginalURL, err := s.DB.Preparex(`SELECT original, isDeleted FROM Urls WHERE short = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtSelectUserURLHistory, err := s.DB.Preparex(`SELECT original AS origin, short, userID AS userkey FROM Urls WHERE UserID = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtDeleteURL, err := s.DB.Preparex(`UPDATE Urls SET isDeleted = true WHERE short = $1 AND userID = $2`)
+	if err != nil {
+		return err
+	}
+
+	// deleteURL UPDATE Urls SET isDeleted = true WHERE short = $1 AND userID = $2
+
+	s.preparedStatements["SelectUser"] = nstmtSelectUser
+	s.preparedStatements["InsertUser"] = nstmtInsertUser
+	s.preparedStatements["SelectShortURL"] = nstmtSelectShortURL
+	s.preparedStatements["InsertURL"] = nstmtInsertURL
+	s.preparedStatements["SelectOriginalURL"] = nstmtSelectOriginalURL
+	s.preparedStatements["SelectUserURLHistory"] = nstmtSelectUserURLHistory
+	s.preparedStatements["DeleteURL"] = nstmtDeleteURL
+
 	return nil
 }

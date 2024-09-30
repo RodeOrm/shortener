@@ -48,3 +48,52 @@ func TestReturnShortKey(t *testing.T) {
 		})
 	}
 }
+
+func TestGetURLsFromString(t *testing.T) {
+
+	type testInput struct {
+		urls string
+		user User
+	}
+
+	tests := []struct {
+		name    string
+		value   testInput
+		want    int
+		wantErr bool
+	}{
+
+		{
+			name:    "Контроль ошибок. Пустая строка",
+			value:   testInput{urls: "", user: User{Key: 1}},
+			wantErr: true,
+		},
+		{
+			name:    "Контроль ошибок. Нет пользователя",
+			value:   testInput{urls: ""},
+			wantErr: true,
+		},
+		{
+			name:    "Успешный сценарий: 1 урл",
+			value:   testInput{urls: "[\"6qxTVvsy\"]", user: User{Key: 1}},
+			want:    1,
+			wantErr: false,
+		}, {
+			name:    "Успешный сценарий: 3 урл",
+			value:   testInput{urls: "[\"6qxTVvsy\", \"RTfd56hn\", \"Jlfd67ds\"]", user: User{Key: 1}},
+			want:    3,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetURLsFromString(tt.value.urls, &tt.value.user)
+			if !tt.wantErr {
+				require.NoError(t, err)
+				assert.Equal(t, tt.want, len(got))
+				return
+			}
+			assert.Error(t, err)
+		})
+	}
+}
