@@ -1,8 +1,8 @@
 package core
 
 type URL struct {
-	Key     string `json:"url,omitempty"`
-	UserKey int
+	Key     string `json:"url,omitempty" db:"key"`
+	UserKey int    `db:"user_key"`
 }
 
 type ShortenURL struct {
