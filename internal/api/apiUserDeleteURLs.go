@@ -42,15 +42,22 @@ func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Помещаем URL в очередь на асинхронное удаление
+	// Помещаем URL в очередь на асинхронное удаление. В случае успешного приёма запроса хендлер должен возвращать HTTP-статус 202 Accepted.
 	urls, err := core.GetURLsFromString(string(bodyBytes), user)
-
 	if err != nil {
 		log.Println("APIUserDeleteURLsHandler 3", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	h.Storage.DeleteURLs(urls)
+
+	err = h.DeleteQueue.Push(urls)
+	if err != nil {
+		log.Println("APIUserDeleteURLsHandler 3", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// h.Storage.DeleteURLs(urls)
 
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprint(w, string(bodyBytes))

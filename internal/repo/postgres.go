@@ -121,20 +121,16 @@ func (s postgresStorage) CloseConnection() {
 }
 
 func (s postgresStorage) DeleteURLs(URLs []core.URL) error {
-	// Использование транзакции
 	tx := s.DB.MustBegin()
-	defer tx.Rollback() // Откат будет выполнен в случае неявного возврата (panic)
+	defer tx.Rollback()
 
-	// Подготовка SQL-запроса для обновления
 	query := `UPDATE Urls SET isDeleted = true WHERE short = :key AND userID = :user_key`
 
-	// Выполнение обновлений
 	for _, update := range URLs {
 		_, err := tx.NamedExec(query, update)
 		if err != nil {
 			log.Printf("Error updating ID %s: %d, %v", update.Key, update.UserKey, err)
 
-			// Откатываем транзакцию при ошибке
 			if rbErr := tx.Rollback(); rbErr != nil {
 				log.Printf("Rollback failed: %v", rbErr)
 			}
@@ -142,9 +138,8 @@ func (s postgresStorage) DeleteURLs(URLs []core.URL) error {
 		}
 	}
 
-	// Фиксация транзакции
 	if err := tx.Commit(); err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	return nil
 }

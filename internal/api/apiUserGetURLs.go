@@ -30,7 +30,7 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Не очень изящно, конечно. Т.к. не хочется слишком много мест
+	//Не очень изящно, конечно. Т.к. не хочется слишком много мест переделывать
 	history := make([]core.UserURLPair, 0)
 
 	for _, v := range *URLHistory {
@@ -44,6 +44,7 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, string(bodyBytes))
 }
