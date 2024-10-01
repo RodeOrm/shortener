@@ -19,6 +19,7 @@ func config() *api.Server {
 	// os.Setenv("DATABASE_DSN", "postgres://app:qqqQQQ123@localhost:5432/shortener?sslmode=disable")
 
 	var serverAddress, baseURL, fileStoragePath, databaseConnectionString string
+	var workerCount, batchSize int
 
 	//Адрес запуска HTTP-сервера
 	if *a == "" {
@@ -54,7 +55,23 @@ func config() *api.Server {
 		databaseConnectionString = *d
 	}
 
+	if *w == "" {
+		workerCount = 5
+	}
+
+	if *s == "" {
+		batchSize = 3
+	}
+
 	logger.Initialize("info")
 
-	return &api.Server{ServerAddress: serverAddress, Storage: repo.NewStorage(fileStoragePath, databaseConnectionString), BaseURL: baseURL}
+	server := &api.Server{
+		ServerAddress: serverAddress,
+		Storage:       repo.NewStorage(fileStoragePath, databaseConnectionString),
+		DeleteQueue:   api.NewQueue(10),
+		BaseURL:       baseURL,
+		WorkerCount:   workerCount,
+		BatchSize:     batchSize}
+
+	return server
 }

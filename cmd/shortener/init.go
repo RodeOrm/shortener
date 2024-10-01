@@ -4,12 +4,7 @@ import (
 	"flag"
 )
 
-var (
-	a *string
-	b *string
-	f *string
-	d *string
-)
+var a, b, f, d, w, s *string
 
 func init() {
 	//флаг -a, отвечающий за адрес запуска HTTP-сервера (переменная SERVER_ADDRESS)
@@ -20,4 +15,8 @@ func init() {
 	f = flag.String("f", "", "FILE_STORAGE_PATH")
 	//флаг -d, отвечающий за строку подключения к БД (переменная DATABASE_DSN)
 	d = flag.String("d", "", "DATABASE_DSN")
+	//флаг -w, отвечающий за число воркеров для удаления
+	w = flag.String("w", "", "WORKER_COUNTS")
+	//флаг -s, отвечающий за размер пачки для удаления
+	s = flag.String("s", "", "BUTCH_SIZE")
 }
