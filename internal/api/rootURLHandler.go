@@ -14,7 +14,13 @@ RootURLHandler GET /{id} принимает в качестве URL-параме
 */
 func (h Server) RootURLHandler(w http.ResponseWriter, r *http.Request) {
 	currentID := mux.Vars(r)["URL"]
-	originalURL, isExist, isDeleted, _ := h.Storage.SelectOriginalURL(currentID)
+	originalURL, isExist, isDeleted, err := h.Storage.SelectOriginalURL(currentID)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "%s", "Для данного URL не найден оригинальный URL")
+	}
+
 	if isDeleted {
 		w.WriteHeader(http.StatusGone)
 		return
@@ -24,8 +30,10 @@ func (h Server) RootURLHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Location", originalURL)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		fmt.Fprintf(w, "%s", originalURL)
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "%s", "Для данного URL не найден оригинальный URL")
+		return
 	}
+
+	w.WriteHeader(http.StatusBadRequest)
+	fmt.Fprintf(w, "%s", "Для данного URL не найден оригинальный URL")
+
 }

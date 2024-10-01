@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"sync"
 
@@ -11,12 +10,11 @@ import (
 
 func (q *Queue) Push(url []core.URL) error {
 	var wg sync.WaitGroup
-	log.Println("Начали помещать в очередь на удаление")
+
 	for _, v := range url {
 		wg.Add(1)
 		go func() {
 			q.ch <- &v
-			log.Println("Поместили: ", v)
 			wg.Done()
 		}()
 	}
@@ -41,7 +39,6 @@ func (q *Queue) PopWait(n int) []core.URL {
 	for i := 0; i < n; i++ {
 		select {
 		case val := <-q.ch:
-			log.Println("Забрали из очереди на удаление: ", *val)
 			urls = append(urls, *val)
 		default:
 			continue
@@ -76,10 +73,9 @@ func (w *Worker) Loop() {
 		if len(urls) == 0 {
 			continue
 		}
-		log.Println("Всего в пачке на удаление: ", urls)
 		err := w.storage.DeleteURLs(urls)
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
+			log.Printf("error: %v\n", err)
 			continue
 		}
 
