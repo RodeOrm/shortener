@@ -61,13 +61,12 @@ func (mr *MockAbstractStorageMockRecorder) DeleteURLs(arg0 interface{}) *gomock.
 }
 
 // InsertURL mocks base method.
-func (m *MockAbstractStorage) InsertURL(arg0, arg1 string, arg2 *core.User) (string, bool, error) {
+func (m *MockAbstractStorage) InsertURL(arg0, arg1 string, arg2 *core.User) (*core.URL, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertURL", arg0, arg1, arg2)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*core.URL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // InsertURL indicates an expected call of InsertURL.
@@ -93,14 +92,12 @@ func (mr *MockAbstractStorageMockRecorder) InsertUser(arg0 interface{}) *gomock.
 }
 
 // SelectOriginalURL mocks base method.
-func (m *MockAbstractStorage) SelectOriginalURL(arg0 string) (string, bool, bool, error) {
+func (m *MockAbstractStorage) SelectOriginalURL(arg0 string) (*core.URL, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SelectOriginalURL", arg0)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(bool)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
+	ret0, _ := ret[0].(*core.URL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SelectOriginalURL indicates an expected call of SelectOriginalURL.

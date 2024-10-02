@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/mocks"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +19,7 @@ func TestRootURL(t *testing.T) {
 
 	storage := mocks.NewMockAbstractStorage(ctrl)
 
-	storage.EXPECT().SelectOriginalURL(gomock.Any()).Return("short", true, true, nil).AnyTimes()
+	storage.EXPECT().SelectOriginalURL(gomock.Any()).Return(&core.URL{Key: "Short", HasBeenDeleted: true}, nil).AnyTimes()
 
 	s := Server{Storage: storage}
 

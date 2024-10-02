@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/rodeorm/shortener/internal/core"
@@ -19,14 +18,15 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Println("APIUserGetURLsHandler 1", err)
-		w.WriteHeader(http.StatusNoContent)
+		/*
+			log.Println("APIUserGetURLsHandler 1", err)
+			w.WriteHeader(http.StatusNoContent) */
+		handleError(w, err, "APIUserGetURLsHandler 1")
 		return
 	}
 	URLHistory, err := h.Storage.SelectUserURLHistory(user)
 	if err != nil {
-		log.Println("APIUserGetURLsHandler 2", err)
-		w.WriteHeader(http.StatusNoContent)
+		handleError(w, err, "APIUserGetURLsHandler 1")
 		return
 	}
 
@@ -40,8 +40,7 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, err := json.Marshal(history)
 	if err != nil {
-		log.Println("APIUserGetURLsHandler 3", err)
-		w.WriteHeader(http.StatusNoContent)
+		handleError(w, err, "APIUserGetURLsHandler 1")
 		return
 	}
 

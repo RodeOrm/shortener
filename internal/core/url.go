@@ -20,10 +20,10 @@ func CheckURLValidity(u string) bool {
 
 func GetURLsFromString(s string, u *User) ([]URL, error) {
 	if u.Key <= 0 {
-		return nil, fmt.Errorf("некорректный пользователь")
+		return nil, fmt.Errorf("некорректный пользователь: %d", u.Key)
 	}
 	if s == "" {
-		return nil, fmt.Errorf("некорректный массив урл")
+		return nil, fmt.Errorf("пустая строка с url")
 	}
 
 	var replacer = strings.NewReplacer(" ", "", "\"", "", "[", "", "]", "")

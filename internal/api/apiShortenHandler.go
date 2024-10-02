@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/rodeorm/shortener/internal/core"
@@ -17,28 +16,26 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	w, user, _, err := h.GetUserIdentity(w, r)
 	if err != nil {
-		log.Println("APIShortenHandler 1", err)
-		w.WriteHeader(http.StatusBadRequest)
+		handleError(w, err, "APIShortenHandler 1")
 		return
 	}
 
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(bodyBytes, &url)
 	if err != nil {
-		log.Println("APIShortenHandler 2", err)
-		w.WriteHeader(http.StatusBadRequest)
+		handleError(w, err, "APIShortenHandler 2")
 		return
 	}
 
-	shortURLKey, isDuplicated, err := h.Storage.InsertURL(url.Key, h.BaseURL, user)
+	urlFromStorage, err := h.Storage.InsertURL(url.Key, h.BaseURL, user)
+	url = *urlFromStorage
 	if err != nil {
-		log.Println("APIShortenHandler 3", err)
-		w.WriteHeader(http.StatusBadRequest)
+		handleError(w, err, "APIShortenHandler 3")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	shortURL.Key = h.BaseURL + "/" + shortURLKey
-	if isDuplicated {
+	shortURL.Key = h.BaseURL + "/" + url.Key
+	if url.HasBeenShorted {
 		w.WriteHeader(http.StatusConflict)
 	} else {
 		w.WriteHeader(http.StatusCreated)
@@ -46,7 +43,7 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, err = json.Marshal(shortURL)
 	if err != nil {
-		log.Println("APIShortenHandler 4", err)
+		handleError(w, err, "APIShortenHandler 4")
 	}
 	fmt.Fprint(w, string(bodyBytes))
 }

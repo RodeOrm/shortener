@@ -9,7 +9,7 @@ import (
 
 func (h Server) PingDBHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := repo.InitPostgresStorage(h.DatabaseConnectionString)
-	if err != nil {
+	if err == nil {
 		fmt.Fprintf(w, "%s", "Успешное соединение с БД")
 		w.WriteHeader(http.StatusOK)
 	} else {

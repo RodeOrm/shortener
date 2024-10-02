@@ -12,43 +12,50 @@ import (
 )
 
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
-func (s fileStorage) InsertURL(URL, baseURL string, user *core.User) (string, bool, error) {
+func (s fileStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
+	url := core.URL{OriginalURL: core.GetClearURL(URL, "")}
 
 	if !core.CheckURLValidity(URL) {
-		return "", false, fmt.Errorf("невалидный URL: %s", URL)
+		return nil, fmt.Errorf("невалидный URL: %s", URL)
 	}
-	URL = core.GetClearURL(URL, "")
-	key, isExist := s.getShortlURLFromFile(URL)
-	if isExist {
-		return key, true, nil
+
+	key, isShorted, err := s.getShortlURLFromFile(URL)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при открытии файла в InsertURL %w", err)
 	}
-	key, _ = core.ReturnShortKey(5)
+	url.Key = key
+	url.HasBeenShorted = isShorted
+
+	if url.HasBeenShorted {
+		return &url, nil
+	}
+	url.Key, _ = core.ReturnShortKey(5)
 
 	f, err := os.OpenFile(s.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("ошибка при открытии файла в InsertURL %w", err)
 	}
 	defer f.Close()
 
-	pair := core.URLPair{Origin: URL, Short: key}
+	pair := core.URLPair{Origin: url.OriginalURL, Short: url.Key}
 	data, err := json.Marshal(pair)
 	if err != nil {
-		return "", false, err
+		return nil, fmt.Errorf("ошибка при открытии маршалининге урл %s в InsertURL %w", pair, err)
 	}
 
-	s.insertUserURLPair(baseURL+"/"+key, URL, user)
+	s.insertUserURLPair(baseURL+"/"+url.Key, URL, user)
 	data = append(data, '\n')
 	_, err = f.Write(data)
 
-	return key, false, err
+	return &url, err
 }
 
 // getShortlURLFromFile возвращает из файла сокращенный URL по оригинальному URL
-func (s fileStorage) getShortlURLFromFile(URL string) (string, bool) {
+func (s fileStorage) getShortlURLFromFile(URL string) (string, bool, error) {
 
 	file, err := os.Open(s.filePath)
 	if err != nil {
-		log.Fatal(err)
+		return "", false, fmt.Errorf("ошибка при открытии файла в getShortlURLFromFile %w", err)
 	}
 	defer file.Close()
 
@@ -57,15 +64,15 @@ func (s fileStorage) getShortlURLFromFile(URL string) (string, bool) {
 	for scanner.Scan() {
 		json.Unmarshal(scanner.Bytes(), &up)
 		if up.Origin == URL {
-			return up.Short, true
+			return up.Short, true, nil
 		}
 	}
 
-	return "", false
+	return "", false, nil
 }
 
 // SelectOriginalURL принимает на вход короткий URL (относительный, без имени домена), извлекает из него ключ и возвращает оригинальный URL из хранилища
-func (s fileStorage) SelectOriginalURL(shortURL string) (string, bool, bool, error) {
+func (s fileStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 
 	file, err := os.Open(s.filePath)
 	if err != nil {
@@ -78,11 +85,11 @@ func (s fileStorage) SelectOriginalURL(shortURL string) (string, bool, bool, err
 	for scanner.Scan() {
 		json.Unmarshal(scanner.Bytes(), &up)
 		if up.Short == shortURL {
-			return up.Origin, true, false, nil
+			return &core.URL{OriginalURL: up.Origin, Key: up.Short}, nil
 		}
 	}
 
-	return "", false, false, err
+	return nil, fmt.Errorf("не найдена пара url")
 
 }
 

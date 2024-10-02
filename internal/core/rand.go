@@ -11,8 +11,7 @@ var letters = []rune("abcdefghijklmnopqrstuvwxyz")
 // ReturnShortKey возвращает рандомный ключ (используем для генерации коротких URL)
 func ReturnShortKey(n int) (string, error) {
 	if n <= 0 {
-		err := fmt.Errorf("некорректное значение ключа %v", n)
-		return "", err
+		return "", fmt.Errorf("некорректное значение ключа %v", n)
 	}
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	b := make([]rune, n)

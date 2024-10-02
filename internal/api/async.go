@@ -1,10 +1,11 @@
 package api
 
 import (
-	"log"
+	"fmt"
 	"sync"
 
 	"github.com/rodeorm/shortener/internal/core"
+	"github.com/rodeorm/shortener/internal/logger"
 	"github.com/rodeorm/shortener/internal/repo"
 )
 
@@ -66,7 +67,8 @@ func NewWorker(id int, queue *Queue, storage repo.AbstractStorage, batchSize int
 
 // Loop - основной рабочий метод воркера
 func (w *Worker) Loop() {
-	log.Println("Worker стартовал", w.id)
+	logger.Log.Info(fmt.Sprintf("Worker #%d стартовал", w.id))
+
 	for {
 		urls := w.queue.PopWait(w.batchSize)
 
@@ -75,10 +77,9 @@ func (w *Worker) Loop() {
 		}
 		err := w.storage.DeleteURLs(urls)
 		if err != nil {
-			log.Printf("error: %v\n", err)
+			logger.Log.Error(fmt.Sprintf("Ошибка при работе воркера %v стартовал", err))
 			continue
 		}
-
-		log.Printf("Воркер #%d удалил пачку урл %v", w.id, urls)
+		logger.Log.Info(fmt.Sprintf("Воркер #%d удалил пачку урл %v", w.id, urls))
 	}
 }

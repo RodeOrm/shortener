@@ -1,8 +1,11 @@
 package core
 
 type URL struct {
-	Key     string `json:"url,omitempty" db:"key"`
-	UserKey int    `db:"user_key"`
+	Key            string `json:"url,omitempty" db:"key"` //Ключ, использованный при сокращении
+	UserKey        int    `db:"user_key"`                 // Пользователь, который сократил URL
+	OriginalURL    string // Оригинальный урл
+	HasBeenShorted bool   // Признак, что сокращали ранее
+	HasBeenDeleted bool   // Признал, что был удален
 }
 
 type ShortenURL struct {

@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/rodeorm/shortener/internal/core"
@@ -17,10 +16,10 @@ type AbstractStorage interface {
 
 		Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
 	*/
-	InsertURL(URL, baseURL string, user *core.User) (string, bool, error)
+	InsertURL(URL, baseURL string, user *core.User) (*core.URL, error)
 
 	// SelectOriginalURL возвращает оригинальный адрес на основании короткого; признак, что url ранее уже сокращался; признак, что url удален
-	SelectOriginalURL(shortURL string) (string, bool, bool, error)
+	SelectOriginalURL(shortURL string) (*core.URL, error)
 
 	// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии, а также значение "отсутствие авторизации по переданному идентификатору"
 	InsertUser(Key int) (*core.User, bool, error)
@@ -106,7 +105,6 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 
 	err = storage.prepareStatements()
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 

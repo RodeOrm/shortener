@@ -3,7 +3,6 @@ package repo
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -37,7 +36,7 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 		isUnathorized = true
 		err = s.preparedStatements["InsertUser"].GetContext(ctx, &Key, time.Now().Format(time.DateTime))
 		if err != nil {
-			return nil, isUnathorized, err
+			return nil, isUnathorized, fmt.Errorf("%s: %w", "ошибка при InsertUser", err)
 		}
 	}
 	return &core.User{Key: Key}, isUnathorized, nil
@@ -48,28 +47,38 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 
 Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
 */
-func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string, bool, error) {
-
+func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
 	if !core.CheckURLValidity(URL) {
-		return "", false, fmt.Errorf("невалидный URL: %s", URL)
+		return nil, fmt.Errorf("невалидный URL: %s", URL)
 	}
 
 	ctx := context.TODO()
-	var short string
 
-	s.preparedStatements["SelectShortURL"].GetContext(ctx, &short, URL)
-	if short != "" {
-		return short, true, nil
-	}
-
-	shortKey, err := core.ReturnShortKey(5)
+	url, err := s.getShortURL(ctx, URL)
 	if err != nil {
-		return "", false, err
+		return nil, err
 	}
-	s.preparedStatements["InsertURL"].ExecContext(ctx, URL, shortKey, user.Key)
 
-	return shortKey, false, nil
+	s.preparedStatements["InsertURL"].ExecContext(ctx, url.OriginalURL, url.Key, user.Key)
 
+	return url, nil
+
+}
+
+func (s postgresStorage) getShortURL(ctx context.Context, URL string) (*core.URL, error) {
+	url := core.URL{OriginalURL: URL}
+	// Смотрим - не сокращали ли урл ранее, если сокращали, то возвращаем ключ для сокращенного
+	err := s.preparedStatements["SelectShortURL"].GetContext(ctx, &url.Key, url.OriginalURL)
+	if err == nil {
+		url.HasBeenShorted = true
+		return &url, nil
+	}
+	// В ином случае получаем новый ключ
+	url.Key, err = core.ReturnShortKey(5)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", "ошибка при обращении ReturnShortKey из SelectShortURL", err)
+	}
+	return &url, nil
 }
 
 /*
@@ -77,25 +86,19 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (string
 
 Возвращает соответствующий оригинальный урл, признак, что url ранее уже сокращался; признак, что url удален
 */
-func (s postgresStorage) SelectOriginalURL(shortURL string) (string, bool, bool, error) {
+func (s postgresStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 	ctx := context.TODO()
-	var (
-		original    string
-		isDeleted   bool
-		isShortened bool
-	)
+	url := core.URL{Key: shortURL}
 
-	err := s.preparedStatements["SelectOriginalURL"].QueryRowContext(ctx, shortURL).Scan(&original, &isDeleted)
+	err := s.preparedStatements["SelectOriginalURL"].QueryRowContext(ctx, shortURL).Scan(&url.OriginalURL, &url.HasBeenDeleted)
 
-	// err := s.DB.QueryRowContext(ctx, "SELECT original, isDeleted FROM Urls WHERE short = $1", shortURL).Scan(&original, &isDeleted)
 	if err != nil {
-		log.Println("SelectOriginalURL", err)
-		return "", false, false, err
+		return nil, fmt.Errorf("ошибка в SelectOriginalURL: %v", err)
 	}
 
-	isShortened = true
+	url.HasBeenShorted = true
 
-	return original, isShortened, isDeleted, nil
+	return &url, nil
 }
 
 // SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
@@ -103,8 +106,6 @@ func (s postgresStorage) SelectUserURLHistory(user *core.User) (*[]core.UserURLP
 	urls := make([]core.UserURLPair, 0, 1)
 
 	err := s.preparedStatements["SelectUserURLHistory"].Select(&urls, user.Key)
-
-	// err := s.DB.Select(&urls, "SELECT original AS origin, short, userID AS userkey FROM Urls WHERE UserID = $1", user.Key)
 
 	if err != nil {
 		return nil, err
@@ -129,17 +130,15 @@ func (s postgresStorage) DeleteURLs(URLs []core.URL) error {
 	for _, update := range URLs {
 		_, err := tx.NamedExec(query, update)
 		if err != nil {
-			log.Printf("Error updating ID %s: %d, %v", update.Key, update.UserKey, err)
-
 			if rbErr := tx.Rollback(); rbErr != nil {
-				log.Printf("Rollback failed: %v", rbErr)
+				return fmt.Errorf("%s: %w: %s: %w", "ошибка при обновлении", err, "ошибка при откате транзакции", rbErr)
 			}
-			return err
+			return fmt.Errorf("откат транзакции из-за ошибки при обновлении %s: %d, %w", update.Key, update.UserKey, err)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Println(err)
+		return fmt.Errorf("%s: %w", "ошибка при фиксации транзакции", err)
 	}
 	return nil
 }
@@ -164,8 +163,7 @@ func (s postgresStorage) createTables(ctx context.Context) error {
 			");"+
 			"CREATE UNIQUE INDEX IF NOT EXISTS url_unique_idx ON Urls (original, UserID) INCLUDE (short);")
 	if err != nil {
-		log.Println("createTables", err)
-		return err
+		return fmt.Errorf("%s: %w", "ошибка при создании таблиц", err)
 	}
 	return nil
 }

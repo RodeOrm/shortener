@@ -14,29 +14,32 @@ type memoryStorage struct {
 }
 
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
-func (s memoryStorage) InsertURL(URL, baseURL string, user *core.User) (string, bool, error) {
+func (s memoryStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
 	if !core.CheckURLValidity(URL) {
-		return "", false, fmt.Errorf("невалидный URL: %s", URL)
+		return nil, fmt.Errorf("невалидный URL: %s", URL)
 	}
 	key, isExist := s.originalToShort[URL]
 	if isExist {
 		s.insertUserURLPair(baseURL+"/"+key, URL, user)
-		return key, true, nil
+		return &core.URL{Key: key, HasBeenShorted: isExist}, nil
 	}
-	key, _ = core.ReturnShortKey(5)
+	key, err := core.ReturnShortKey(5)
+	if err != nil {
+		return nil, err
+	}
 
 	s.originalToShort[URL] = key
 	s.shortToOriginal[key] = URL
 
 	s.insertUserURLPair(baseURL+"/"+key, URL, user)
 
-	return key, false, nil
+	return &core.URL{Key: key, HasBeenShorted: false}, nil
 }
 
 // SelectOriginalURL принимает на вход короткий URL (относительный, без имени домена), извлекает из него ключ и возвращает оригинальный URL из хранилища
-func (s memoryStorage) SelectOriginalURL(shortURL string) (string, bool, bool, error) {
+func (s memoryStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 	originalURL, isExist := s.shortToOriginal[shortURL]
-	return originalURL, isExist, false, nil
+	return &core.URL{Key: shortURL, HasBeenShorted: isExist, OriginalURL: originalURL}, nil
 }
 
 // InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии

@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/rodeorm/shortener/internal/core"
@@ -27,38 +26,29 @@ func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
 	if err != nil {
-		log.Println("APIUserDeleteURLsHandler 1", err)
-		w.WriteHeader(http.StatusNoContent)
+		handleError(w, err, "APIUserDeleteURLsHandler 1")
 		return
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
-
 	if err != nil {
-		log.Println("APIUserDeleteURLsHandler 2", err)
-		w.WriteHeader(http.StatusNoContent)
+		handleError(w, err, "APIUserDeleteURLsHandler 2")
 		return
 	}
 
 	// Помещаем URL в очередь на асинхронное удаление. В случае успешного приёма запроса хендлер должен возвращать HTTP-статус 202 Accepted.
 	urls, err := core.GetURLsFromString(string(bodyBytes), user)
 	if err != nil {
-		log.Println("APIUserDeleteURLsHandler 3", err)
-		w.WriteHeader(http.StatusBadRequest)
+		handleError(w, err, "APIUserDeleteURLsHandler 3")
 		return
 	}
 
 	err = h.DeleteQueue.Push(urls)
 	if err != nil {
-		log.Println("APIUserDeleteURLsHandler 3", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		handleError(w, err, "APIUserDeleteURLsHandler 4")
 		return
 	}
-
-	// h.Storage.DeleteURLs(urls)
-
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprint(w, string(bodyBytes))
 }
