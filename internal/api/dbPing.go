@@ -3,12 +3,10 @@ package api
 import (
 	"fmt"
 	"net/http"
-
-	repo "github.com/rodeorm/shortener/internal/repo"
 )
 
 func (h Server) PingDBHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := repo.InitPostgresStorage(h.DatabaseConnectionString)
+	err := h.Storage.PingDB()
 	if err == nil {
 		fmt.Fprintf(w, "%s", "Успешное соединение с БД")
 		w.WriteHeader(http.StatusOK)

@@ -192,6 +192,10 @@ func (s fileStorage) CheckFile(filePath string) error {
 	return nil
 }
 
+func (s fileStorage) PingDB() error {
+	return nil
+}
+
 type fileStorage struct {
 	filePath     string
 	users        map[int]*core.User

@@ -91,6 +91,20 @@ func (mr *MockAbstractStorageMockRecorder) InsertUser(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUser", reflect.TypeOf((*MockAbstractStorage)(nil).InsertUser), arg0)
 }
 
+// PingDB mocks base method.
+func (m *MockAbstractStorage) PingDB() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PingDB")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PingDB indicates an expected call of PingDB.
+func (mr *MockAbstractStorageMockRecorder) PingDB() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingDB", reflect.TypeOf((*MockAbstractStorage)(nil).PingDB))
+}
+
 // SelectOriginalURL mocks base method.
 func (m *MockAbstractStorage) SelectOriginalURL(arg0 string) (*core.URL, error) {
 	m.ctrl.T.Helper()

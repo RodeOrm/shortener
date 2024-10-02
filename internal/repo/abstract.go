@@ -30,8 +30,9 @@ type AbstractStorage interface {
 	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
 	DeleteURLs(URLs []core.URL) error
 
-	// Закрыть соединение (только для СУБД)
+	// Только для хранения данных в Postgres
 	CloseConnection()
+	PingDB() error
 }
 
 // NewStorage определяет место для хранения данных

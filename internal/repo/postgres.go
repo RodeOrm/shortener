@@ -18,6 +18,10 @@ type postgresStorage struct {
 	preparedStatements map[string]*sqlx.Stmt
 }
 
+func (s postgresStorage) PingDB() error {
+	return s.DB.Ping()
+}
+
 /*
 InsertUser принимает идентификатор пользователя
 

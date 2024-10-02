@@ -119,3 +119,7 @@ func (s memoryStorage) CloseConnection() {
 func (s memoryStorage) DeleteURLs(URLs []core.URL) error {
 	return nil
 }
+
+func (s memoryStorage) PingDB() error {
+	return nil
+}
