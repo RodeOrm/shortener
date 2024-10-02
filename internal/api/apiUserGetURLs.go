@@ -10,9 +10,9 @@ import (
 
 /*APIUserGetURLsHandler возвращает пользователю все когда-либо сокращённые им URL в формате JSON*/
 func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
-	w, user, isUnathorized, err := h.GetUserIdentity(w, r)
+	w, user, err := h.GetUserIdentity(w, r)
 
-	if isUnathorized {
+	if user.WasUnathorized {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

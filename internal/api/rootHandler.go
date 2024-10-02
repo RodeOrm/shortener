@@ -9,7 +9,7 @@ import (
 // RootHandler POST принимает в теле запроса строку URL для сокращения и возвращает ответ с кодом 201 и сокращённым URL в виде текстовой строки в теле.
 func (h Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 
-	w, user, _, err := h.GetUserIdentity(w, r)
+	w, user, err := h.GetUserIdentity(w, r)
 	if err != nil {
 		handleError(w, err, "RootHandler 1")
 		return

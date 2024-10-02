@@ -21,8 +21,8 @@ Content-Type: application/json
 Для максимального наполнения буфера объектов обновления используйте паттерн fanIn.
 */
 func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
-	w, user, isUnathorized, err := h.GetUserIdentity(w, r)
-	if isUnathorized {
+	w, user, err := h.GetUserIdentity(w, r)
+	if user.WasUnathorized {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

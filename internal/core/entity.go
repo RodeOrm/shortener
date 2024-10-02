@@ -39,6 +39,7 @@ type URLWithCorrelationResponse struct {
 }
 
 type User struct {
-	Key  int
-	Urls []UserURLPair
+	Key            int
+	Urls           []UserURLPair
+	WasUnathorized bool
 }

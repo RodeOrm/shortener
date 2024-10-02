@@ -10,7 +10,7 @@ import (
 )
 
 func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
-	w, user, _, err := h.GetUserIdentity(w, r)
+	w, user, err := h.GetUserIdentity(w, r)
 
 	if err != nil {
 		handleError(w, err, "APIShortenBatch 1")

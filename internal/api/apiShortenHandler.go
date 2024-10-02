@@ -14,7 +14,7 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	url := core.URL{}
 	shortURL := core.ShortenURL{}
 
-	w, user, _, err := h.GetUserIdentity(w, r)
+	w, user, err := h.GetUserIdentity(w, r)
 	if err != nil {
 		handleError(w, err, "APIShortenHandler 1")
 		return
