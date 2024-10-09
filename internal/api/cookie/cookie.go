@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/rodeorm/shortener/internal/core"
+	crypt "github.com/rodeorm/shortener/internal/crypt"
 )
 
 func GetUserKeyFromCoockie(r *http.Request) (string, error) {
@@ -12,21 +12,18 @@ func GetUserKeyFromCoockie(r *http.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//fmt.Println("Отладочный вывод GetUserKeyFromCoockie. Получили токен", tokenCookie)
 	if tokenCookie.Value == "" {
 		return "", fmt.Errorf("не найдено актуальных cookie")
 	}
-	userKey, err := core.Decrypt(tokenCookie.Value)
+	userKey, err := crypt.Decrypt(tokenCookie.Value)
 	if err != nil {
-		//fmt.Println("Отладочный вывод GetUserKeyFromCoockie. Ошибка в декрипт", err)
 		return "", err
 	}
-	//fmt.Println("Отладочный вывод GetUserKeyFromCoockie. Ключ из токена", userKey)
 	return userKey, nil
 }
 
 func PutUserKeyToCookie(Key string) *http.Cookie {
-	val, _ := core.Encrypt(Key)
+	val, _ := crypt.Encrypt(Key)
 
 	cookie := &http.Cookie{
 		Name:   "token",

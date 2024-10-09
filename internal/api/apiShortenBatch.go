@@ -4,18 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/rodeorm/shortener/internal/core"
 )
 
 func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
-	w, user, _, err := h.GetUserIdentity(w, r)
+	w, user, err := h.GetUserIdentity(w, r)
 
 	if err != nil {
-		log.Println("APIShortenBatch", err)
-		w.WriteHeader(http.StatusBadRequest)
+		handleError(w, err, "APIShortenBatch 1")
 		return
 	}
 
@@ -26,21 +24,18 @@ func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, _ := io.ReadAll(r.Body)
 	err = json.Unmarshal(bodyBytes, &urlReq)
-
 	if err != nil {
-		log.Println("APIShortenBatch", err)
-		w.WriteHeader(http.StatusBadRequest)
+		handleError(w, err, "APIShortenBatch 2")
 		return
 	}
 
 	for _, value := range urlReq {
-		shortURLKey, _, err := h.Storage.InsertURL(value.Origin, h.BaseURL, user)
+		url, err := h.Storage.InsertURL(value.Origin, h.BaseURL, user)
 		if err != nil {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
+			handleError(w, err, "APIShortenBatch 3")
 			return
 		}
-		urlResPart := core.URLWithCorrelationResponse{CorID: value.CorID, Short: h.BaseURL + "/" + shortURLKey}
+		urlResPart := core.URLWithCorrelationResponse{CorID: value.CorID, Short: h.BaseURL + "/" + url.Key}
 		urlRes = append(urlRes, urlResPart)
 	}
 
@@ -49,7 +44,7 @@ func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, err = json.Marshal(urlRes)
 	if err != nil {
-		fmt.Println(err)
+		handleError(w, err, "APIShortenBatch 4")
 	}
 	fmt.Fprint(w, string(bodyBytes))
 }

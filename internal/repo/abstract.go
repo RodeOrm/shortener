@@ -10,19 +10,29 @@ import (
 )
 
 type AbstractStorage interface {
-	// InsertURL сохраняет соответствие между оригинальным и коротким адресом
-	InsertURL(URL, baseURL string, user *core.User) (string, bool, error)
+	/*
+		InsertURL принимает оригинальный URL, базовый урл для генерации коротких адресов и пользователя.
+		Генерирует уникальный ключ для короткого адреса, сохраняет соответствие оригинального URL и ключа.
+
+		Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
+	*/
+	InsertURL(URL, baseURL string, user *core.User) (*core.URL, error)
+
 	// SelectOriginalURL возвращает оригинальный адрес на основании короткого; признак, что url ранее уже сокращался; признак, что url удален
-	SelectOriginalURL(shortURL string) (string, bool, bool, error)
-	//InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
+	SelectOriginalURL(shortURL string) (*core.URL, error)
+
+	// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии, а также значение "отсутствие авторизации по переданному идентификатору"
 	InsertUser(Key int) (*core.User, bool, error)
+
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
 	SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error)
-	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
-	DeleteURLs(URL string, user *core.User) (bool, error)
 
-	// Закрыть соединение (только для СУБД)
+	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
+	DeleteURLs(URLs []core.URL) error
+
+	// Только для хранения данных в Postgres
 	CloseConnection()
+	PingDB() error
 }
 
 // NewStorage определяет место для хранения данных
@@ -88,9 +98,13 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 		return nil, err
 	}
 	delQueue := make(chan string)
-	storage := postgresStorage{DB: db, ConnectionString: connectionString, deleteQueue: delQueue}
+	storage := postgresStorage{DB: db, ConnectionString: connectionString, deleteQueue: delQueue, preparedStatements: map[string]*sqlx.Stmt{}}
 	err = storage.createTables(ctx)
+	if err != nil {
+		return nil, err
+	}
 
+	err = storage.prepareStatements()
 	if err != nil {
 		return nil, err
 	}
@@ -100,4 +114,53 @@ func InitPostgresStorage(connectionString string) (*postgresStorage, error) {
 	)
 
 	return &storage, nil
+}
+
+func (s *postgresStorage) prepareStatements() error {
+
+	nstmtSelectUser, err := s.DB.Preparex(`SELECT ID from Users WHERE ID = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtInsertUser, err := s.DB.Preparex(`INSERT INTO Users (Name) VALUES ($1) RETURNING ID`)
+	if err != nil {
+		return err
+	}
+
+	nstmtSelectShortURL, err := s.DB.Preparex(`SELECT short from Urls WHERE original = $1`)
+	if err != nil {
+		return err
+	}
+	nstmtInsertURL, err := s.DB.Preparex(`INSERT INTO Urls (original, short, userID) SELECT $1, $2, $3`)
+	if err != nil {
+		return err
+	}
+
+	nstmtSelectOriginalURL, err := s.DB.Preparex(`SELECT original, isDeleted FROM Urls WHERE short = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtSelectUserURLHistory, err := s.DB.Preparex(`SELECT original AS origin, short, userID AS userkey FROM Urls WHERE UserID = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtDeleteURL, err := s.DB.Preparex(`UPDATE Urls SET isDeleted = true WHERE short = $1 AND userID = $2`)
+	if err != nil {
+		return err
+	}
+
+	// deleteURL UPDATE Urls SET isDeleted = true WHERE short = $1 AND userID = $2
+
+	s.preparedStatements["SelectUser"] = nstmtSelectUser
+	s.preparedStatements["InsertUser"] = nstmtInsertUser
+	s.preparedStatements["SelectShortURL"] = nstmtSelectShortURL
+	s.preparedStatements["InsertURL"] = nstmtInsertURL
+	s.preparedStatements["SelectOriginalURL"] = nstmtSelectOriginalURL
+	s.preparedStatements["SelectUserURLHistory"] = nstmtSelectUserURLHistory
+	s.preparedStatements["DeleteURL"] = nstmtDeleteURL
+
+	return nil
 }

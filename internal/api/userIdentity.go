@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -11,7 +10,7 @@ import (
 )
 
 // GetUserIdentity определяет по кукам какой пользователь авторизовался, если куки некорректные, то создает новые, но возвращает ошибку
-func (h Server) GetUserIdentity(w http.ResponseWriter, r *http.Request) (http.ResponseWriter, *core.User, bool, error) {
+func (h Server) GetUserIdentity(w http.ResponseWriter, r *http.Request) (http.ResponseWriter, *core.User, error) {
 	userKey, err := cookie.GetUserKeyFromCoockie(r)
 	var isUnathorized bool
 
@@ -20,15 +19,15 @@ func (h Server) GetUserIdentity(w http.ResponseWriter, r *http.Request) (http.Re
 	}
 
 	key, err := strconv.Atoi(userKey)
+	// Если идентификатор - это не число, то пользователь точно не авторизован. key остается со значением по умолчанию.
 	if err != nil {
 		isUnathorized = true
 	}
 	user, isUnathorized, err := h.Storage.InsertUser(key)
-	if isUnathorized {
-		log.Println(err)
+	if err != nil {
+		handleError(w, err, "GetUserIdentity")
 	}
-
-	// 	fmt.Println("Отладочный вывод", user, "Не был авторизован", isUnathorized)
+	user.WasUnathorized = isUnathorized
 	http.SetCookie(w, cookie.PutUserKeyToCookie(fmt.Sprint(user.Key)))
-	return w, user, isUnathorized, nil
+	return w, user, nil
 }

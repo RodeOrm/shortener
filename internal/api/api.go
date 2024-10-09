@@ -14,6 +14,9 @@ import (
 // ServerStart запускает веб-сервер
 func ServerStart(s *Server) error {
 
+	defer s.Storage.CloseConnection()
+	defer close(s.DeleteQueue.ch)
+
 	r := mux.NewRouter()
 	r.HandleFunc("/", s.RootHandler).Methods(http.MethodPost)
 	r.HandleFunc("/ping", s.PingDBHandler).Methods(http.MethodGet)
@@ -26,7 +29,7 @@ func ServerStart(s *Server) error {
 
 	r.HandleFunc("/", s.BadRequestHandler)
 
-	r.Use(middleware.ZipMiddleware, middleware.WithLogging)
+	r.Use(middleware.WithZip, middleware.WithLog)
 
 	srv := &http.Server{
 		Handler:      r,
@@ -34,9 +37,13 @@ func ServerStart(s *Server) error {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Fatal(srv.ListenAndServe())
 
-	s.Storage.CloseConnection()
+	for i := 0; i < s.WorkerCount; i++ {
+		w := NewWorker(i, s.DeleteQueue, s.Storage, s.BatchSize)
+		go w.Loop()
+	}
+
+	log.Fatal(srv.ListenAndServe())
 
 	return nil
 }
@@ -46,5 +53,9 @@ type Server struct {
 	BaseURL                  string
 	DatabaseConnectionString string
 
-	Storage repo.AbstractStorage
+	WorkerCount int
+	BatchSize   int
+
+	Storage     repo.AbstractStorage
+	DeleteQueue *Queue
 }

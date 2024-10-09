@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/rodeorm/shortener/internal/core"
@@ -11,26 +10,27 @@ import (
 
 /*APIUserGetURLsHandler возвращает пользователю все когда-либо сокращённые им URL в формате JSON*/
 func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
-	w, user, isUnathorized, err := h.GetUserIdentity(w, r)
+	w, user, err := h.GetUserIdentity(w, r)
 
-	if isUnathorized {
+	if user.WasUnathorized {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	if err != nil {
-		log.Println("APIUserGetURLsHandler", err)
-		w.WriteHeader(http.StatusNoContent)
+		/*
+			log.Println("APIUserGetURLsHandler 1", err)
+			w.WriteHeader(http.StatusNoContent) */
+		handleError(w, err, "APIUserGetURLsHandler 1")
 		return
 	}
 	URLHistory, err := h.Storage.SelectUserURLHistory(user)
 	if err != nil {
-		log.Println("APIUserGetURLsHandler", err)
-		w.WriteHeader(http.StatusNoContent)
+		handleError(w, err, "APIUserGetURLsHandler 1")
 		return
 	}
 
-	//Не очень изящно, конечно. Т.к. не хочется слишком много мест
+	//Не очень изящно, конечно. Т.к. не хочется слишком много мест переделывать
 	history := make([]core.UserURLPair, 0)
 
 	for _, v := range *URLHistory {
@@ -40,10 +40,10 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, err := json.Marshal(history)
 	if err != nil {
-		fmt.Println("Проблемы при маршалинге истории урл", err)
-		w.WriteHeader(http.StatusNoContent)
+		handleError(w, err, "APIUserGetURLsHandler 1")
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, string(bodyBytes))
 }
