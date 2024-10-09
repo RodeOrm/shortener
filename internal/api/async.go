@@ -65,9 +65,8 @@ func NewWorker(id int, queue *Queue, storage repo.AbstractStorage, batchSize int
 	return &w
 }
 
-// Loop - основной рабочий метод воркера
 func (w *Worker) Loop() {
-	logger.Log.Info(fmt.Sprintf("Worker #%d стартовал", w.id))
+	logger.Log.Info(fmt.Sprintf("воркер #%d стартовал", w.id))
 
 	for {
 		urls := w.queue.PopWait(w.batchSize)
@@ -77,9 +76,9 @@ func (w *Worker) Loop() {
 		}
 		err := w.storage.DeleteURLs(urls)
 		if err != nil {
-			logger.Log.Error(fmt.Sprintf("Ошибка при работе воркера %v стартовал", err))
+			logger.Log.Error(fmt.Sprintf("ошибка при работе воркера %v стартовал", err))
 			continue
 		}
-		logger.Log.Info(fmt.Sprintf("Воркер #%d удалил пачку урл %v", w.id, urls))
+		logger.Log.Info(fmt.Sprintf("воркер #%d удалил пачку урл %v", w.id, urls))
 	}
 }

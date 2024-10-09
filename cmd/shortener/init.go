@@ -4,7 +4,7 @@ import (
 	"flag"
 )
 
-var a, b, f, d, w, s *string
+var a, b, f, d, w, s, q *string
 
 func init() {
 	//флаг -a, отвечающий за адрес запуска HTTP-сервера (переменная SERVER_ADDRESS)
@@ -19,4 +19,6 @@ func init() {
 	w = flag.String("w", "", "WORKER_COUNTS")
 	//флаг -s, отвечающий за размер пачки для удаления
 	s = flag.String("s", "", "BUTCH_SIZE")
+	//флаг -q, отвечающий за размер очереди для удаления
+	q = flag.String("q", "", "DELETE_QUEUE_SIZE")
 }
