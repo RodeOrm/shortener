@@ -97,3 +97,21 @@ func TestGetURLsFromString(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkGetURLsFromString(b *testing.B) {
+	type testInput struct {
+		urls string
+		user User
+	}
+
+	tests := []testInput{
+		{urls: "[\"6qxTVvsy\", \"RTfd56hn\", \"Jlfd67ds\"]", user: User{Key: 1}},
+		{urls: "[\"6qxTVvsy\", \"RTfd56hn\", \"Jlfd67ds\", \"Jlfd67ds\", \"Jlfd67ds\", \"Jlfd67ds\", \"Jlfd67ds\"]", user: User{Key: 2}},
+	}
+
+	for i := 0; i < 1000000; i++ {
+		for _, v := range tests {
+			GetURLsFromString(v.urls, &v.user)
+		}
+	}
+}

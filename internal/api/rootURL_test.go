@@ -17,7 +17,7 @@ func TestRootURL(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	storage := mocks.NewMockAbstractStorage(ctrl)
+	storage := mocks.NewMockStorager(ctrl)
 
 	storage.EXPECT().SelectOriginalURL(gomock.Any()).Return(&core.URL{Key: "Short", HasBeenDeleted: true}, nil).AnyTimes()
 

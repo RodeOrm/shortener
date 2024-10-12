@@ -25,7 +25,7 @@ func ServerStart(s *Server) error {
 	r.HandleFunc("/api/shorten", s.APIShortenHandler).Methods(http.MethodPost)
 	r.HandleFunc("/api/user/urls", s.APIUserGetURLsHandler).Methods(http.MethodGet)
 	r.HandleFunc("/api/user/urls", s.APIUserDeleteURLsHandler).Methods(http.MethodDelete)
-	r.HandleFunc("/api/shorten/batch", s.APIShortenBatch).Methods(http.MethodPost)
+	r.HandleFunc("/api/shorten/batch", s.APIShortenBatchHandler).Methods(http.MethodPost)
 
 	r.HandleFunc("/", s.BadRequestHandler)
 
@@ -56,6 +56,6 @@ type Server struct {
 	WorkerCount int
 	BatchSize   int
 
-	Storage     repo.AbstractStorage
+	Storage     repo.Storager
 	DeleteQueue *Queue
 }
