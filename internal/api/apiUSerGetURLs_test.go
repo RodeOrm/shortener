@@ -18,16 +18,16 @@ func TestAPIUserGetURLs(t *testing.T) {
 
 	storage := mocks.NewMockStorager(ctrl)
 
-	userURLs := make([]core.UserURLPair, 10)
-	userURLs = append(userURLs, core.UserURLPair{UserKey: 1000, Short: "1", Origin: "http://zzz.ru"})
-	userURLs = append(userURLs, core.UserURLPair{UserKey: 1000, Short: "2", Origin: "http://yandex.com"})
+	userURLs := make([]core.UserURLPair, 0)
+	userURLs = append(userURLs, core.UserURLPair{UserKey: 1000, Short: "1", Origin: "http://1.ru"})
+	userURLs = append(userURLs, core.UserURLPair{UserKey: 1000, Short: "2", Origin: "http://2.com"})
 
 	user := &core.User{Key: 1000}
 
 	storage.EXPECT().InsertUser(gomock.Any()).Return(user, false, nil).AnyTimes()
 	storage.EXPECT().SelectUserURLHistory(user).Return(userURLs, nil)
 
-	s := Server{Storage: storage}
+	s := Server{Storage: storage, BaseURL: "http:tiny.com"}
 
 	handler := http.HandlerFunc(s.APIUserGetURLsHandler)
 	srv := httptest.NewServer(handler)
@@ -49,7 +49,7 @@ func TestAPIUserGetURLs(t *testing.T) {
 			req.URL = srv.URL
 
 			resp, err := req.Send()
-
+			assert.JSONEq(t, `[ {"short_url": "http:tiny.com/1", "original_url": "http://1.ru" }, {"short_url": "http:tiny.com/2" , "original_url": "http://2.com"}]`, string(resp.Body()))
 			assert.NoError(t, err, "ошибка при попытке сделать запрос", resp)
 		})
 	}
