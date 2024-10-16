@@ -19,6 +19,7 @@ func TestWithLog(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "http://example.com/test", nil)
 	rr := httptest.NewRecorder()
+	defer req.Body.Close()
 
 	loggedHandler.ServeHTTP(rr, req)
 

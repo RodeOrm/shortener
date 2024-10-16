@@ -21,8 +21,8 @@ func TestWithZip(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "http://example.com/test", io.NopCloser(strings.NewReader("Something")))
 	req.Header.Add("Accept-Encoding", "gzip")
 	rr := httptest.NewRecorder()
-
 	zipHandler.ServeHTTP(rr, req)
+	defer req.Body.Close()
 
 	assert.Equal(t, http.StatusOK, rr.Result().StatusCode, fmt.Sprintf("Код ответа не соответствует ожидаемому. Тело запроса: %s", req.Body))
 	assert.Equal(t, "gzip", rr.Result().Header.Get("Content-Encoding"), fmt.Sprintf("Header не содержит Content-Encoding gzip. Header: %s", rr.Result().Header))
