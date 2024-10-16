@@ -14,6 +14,7 @@ import (
 func TestWithZip(t *testing.T) {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
+		defer r.Body.Close()
 	})
 
 	zipHandler := WithZip(testHandler)

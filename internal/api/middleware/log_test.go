@@ -13,15 +13,17 @@ func TestWithLog(t *testing.T) {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Hello, tested world!"))
+		defer r.Body.Close()
 	})
 
 	loggedHandler := WithLog(testHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "http://example.com/test", nil)
+	defer req.Body.Close()
+
 	rr := httptest.NewRecorder()
 	res := rr.Result()
 	defer res.Body.Close()
-	defer req.Body.Close()
 
 	loggedHandler.ServeHTTP(rr, req)
 
