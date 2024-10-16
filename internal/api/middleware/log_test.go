@@ -21,6 +21,7 @@ func TestWithLog(t *testing.T) {
 	rr := httptest.NewRecorder()
 	res := rr.Result()
 	defer res.Body.Close()
+	defer req.Body.Close()
 
 	loggedHandler.ServeHTTP(rr, req)
 
