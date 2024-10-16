@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,19 +14,23 @@ func TestWithLog(t *testing.T) {
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Hello, tested world!"))
-		defer r.Body.Close()
 	})
 
 	loggedHandler := WithLog(testHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "http://example.com/test", nil)
-	defer req.Body.Close()
-
 	rr := httptest.NewRecorder()
-	res := rr.Result()
-	defer res.Body.Close()
 
 	loggedHandler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusOK, res.StatusCode, fmt.Sprintf("Код ответа не соответствует ожидаемому. Тело запроса: %s", req.Body))
+	res := rr.Result()
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatalf("Ошибка при чтении тела ответа: %v", err)
+	}
+
+	assert.Equal(t, http.StatusOK, res.StatusCode, fmt.Sprintf("Код ответа не соответствует ожидаемому. Тело запроса: %s", body))
+	assert.Equal(t, "Hello, tested world!", string(body), "Содержимое ответа не соответствует ожидаемому.")
 }
