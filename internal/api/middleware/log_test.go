@@ -19,9 +19,10 @@ func TestWithLog(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "http://example.com/test", nil)
 	rr := httptest.NewRecorder()
-	defer req.Body.Close()
+	res := rr.Result()
+	defer res.Body.Close()
 
 	loggedHandler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusOK, rr.Result().StatusCode, fmt.Sprintf("Код ответа не соответствует ожидаемому. Тело запроса: %s", req.Body))
+	assert.Equal(t, http.StatusOK, res.StatusCode, fmt.Sprintf("Код ответа не соответствует ожидаемому. Тело запроса: %s", req.Body))
 }
