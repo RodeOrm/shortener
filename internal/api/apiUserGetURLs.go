@@ -26,8 +26,6 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Не очень изящно, конечно. Т.к. не хочется слишком много мест переделывать
-	// history := make([]core.UserURLPair, 0)
-
 	for i, v := range history {
 		history[i].Short = fmt.Sprintf("%s/%s", h.BaseURL, v.Short)
 	}
