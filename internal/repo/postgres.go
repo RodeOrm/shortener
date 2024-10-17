@@ -42,6 +42,7 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", "ошибка при InsertUser", err)
 		}
+		return &core.User{Key: Key, WasUnathorized: true}, nil
 	}
 	return &core.User{Key: Key, WasUnathorized: false}, nil
 }
