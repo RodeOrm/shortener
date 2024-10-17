@@ -76,13 +76,12 @@ func (mr *MockStoragerMockRecorder) InsertURL(arg0, arg1, arg2 interface{}) *gom
 }
 
 // InsertUser mocks base method.
-func (m *MockStorager) InsertUser(arg0 int) (*core.User, bool, error) {
+func (m *MockStorager) InsertUser(arg0 int) (*core.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertUser", arg0)
 	ret0, _ := ret[0].(*core.User)
-	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // InsertUser indicates an expected call of InsertUser.

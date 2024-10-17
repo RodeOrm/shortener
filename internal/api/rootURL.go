@@ -7,12 +7,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/*
-RootURLHandler GET /{id} принимает в качестве URL-параметра идентификатор сокращённого URL и возвращает ответ с кодом 307 и оригинальным URL в HTTP-заголовке Location.
-Нужно учесть некорректные запросы и возвращать для них ответ с кодом 400
-При запросе удалённого URL с помощью хендлера GET /{id} нужно вернуть статус 410 Gone
-*/
-func (h Server) RootURLHandler(w http.ResponseWriter, r *http.Request) {
+// RootURLHandler обработчик метода GET для маршрута ./{id} принимает в качестве URL-параметра идентификатор сокращённого URL и перебрасывает по оригинальному URL.
+//
+// Для переброски возвращает ответ со статусом 307 TemporaryRedirect и оригинальным URL в HTTP-заголовке Location.
+// Для некорректных запросов возвращает ответ со статусом 400 BadRequest.
+// При запросе удалённого URL с помощью хендлера возвращается ответ со статусом 410 Gone.
+func (h Server) rootURLHandler(w http.ResponseWriter, r *http.Request) {
 	currentID := mux.Vars(r)["URL"]
 	url, err := h.Storage.SelectOriginalURL(currentID)
 

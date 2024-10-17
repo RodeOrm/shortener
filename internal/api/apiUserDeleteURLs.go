@@ -18,7 +18,7 @@ Content-Type: application/json
 Успешно удалить URL может пользователь, его создавший.
 */
 func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
-	w, user, err := h.GetUserIdentity(w, r)
+	w, user, err := h.getUserIdentity(w, r)
 	if user.WasUnathorized {
 		w.WriteHeader(http.StatusUnauthorized)
 		return

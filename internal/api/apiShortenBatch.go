@@ -9,9 +9,9 @@ import (
 	"github.com/rodeorm/shortener/internal/core"
 )
 
+// APIShortenBatchHandler обрабатывает методы POST для маршрута /api/shorten/batch, принимает в теле запроса множество URL для сокращения в формате:
+//
 /*
-	Хендлер POST /api/shorten/batch, принимающий в теле запроса множество URL для сокращения в формате:
-
 [
 
 	{
@@ -21,7 +21,7 @@ import (
 	...
 
 ]
-В качестве ответа хендлер должен возвращать данные в формате:
+В качестве ответа возвращает данные в формате:
 [
 
 	{
@@ -33,7 +33,7 @@ import (
 ]
 */
 func (h Server) APIShortenBatchHandler(w http.ResponseWriter, r *http.Request) {
-	w, user, err := h.GetUserIdentity(w, r)
+	w, user, err := h.getUserIdentity(w, r)
 
 	if err != nil {
 		handleError(w, err, "APIShortenBatch 1")

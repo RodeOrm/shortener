@@ -9,6 +9,7 @@ import (
 	"github.com/rodeorm/shortener/internal/repo"
 )
 
+// Push помещает пачку URL в очередь
 func (q *Queue) Push(url []core.URL) error {
 	var wg sync.WaitGroup
 
@@ -24,17 +25,20 @@ func (q *Queue) Push(url []core.URL) error {
 	return nil
 }
 
+// NewQueue создает новую очередь URL размером n
 func NewQueue(n int) *Queue {
 	return &Queue{
 		ch: make(chan *core.URL, n),
 	}
 }
 
+// Queue очередь на удаление URL
 type Queue struct {
 	ch chan *core.URL
 }
 
-func (q *Queue) PopWait(n int) []core.URL {
+// PopWait извлекает пачку URL из очереди на удаление
+func (q *Queue) popWait(n int) []core.URL {
 
 	urls := make([]core.URL, 0)
 	for i := 0; i < n; i++ {
@@ -48,6 +52,7 @@ func (q *Queue) PopWait(n int) []core.URL {
 	return urls
 }
 
+// Worker структура, удаляющая URL
 type Worker struct {
 	id        int
 	batchSize int
@@ -55,6 +60,7 @@ type Worker struct {
 	storage   repo.Storager
 }
 
+// NewWorker создает новый Worker
 func NewWorker(id int, queue *Queue, storage repo.Storager, batchSize int) *Worker {
 	w := Worker{
 		id:        id,
@@ -65,11 +71,12 @@ func NewWorker(id int, queue *Queue, storage repo.Storager, batchSize int) *Work
 	return &w
 }
 
-func (w *Worker) Loop() {
+// Loop основной рабочий метод Worker
+func (w *Worker) loop() {
 	logger.Log.Info(fmt.Sprintf("воркер #%d стартовал", w.id))
 
 	for {
-		urls := w.queue.PopWait(w.batchSize)
+		urls := w.queue.popWait(w.batchSize)
 
 		if len(urls) == 0 {
 			continue

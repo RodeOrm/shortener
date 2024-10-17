@@ -14,15 +14,15 @@ type Storager interface {
 		InsertURL принимает оригинальный URL, базовый урл для генерации коротких адресов и пользователя.
 		Генерирует уникальный ключ для короткого адреса, сохраняет соответствие оригинального URL и ключа.
 
-		Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
+		Возвращает обновленный URL с соответствующим сокращенным URL, а также признаком того, что URL сократили ранее.
 	*/
 	InsertURL(URL, baseURL string, user *core.User) (*core.URL, error)
 
-	// SelectOriginalURL возвращает оригинальный адрес на основании короткого; признак, что url ранее уже сокращался; признак, что url удален
+	// SelectOriginalURL возвращает URL на основании короткого
 	SelectOriginalURL(shortURL string) (*core.URL, error)
 
 	// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии, а также значение "отсутствие авторизации по переданному идентификатору"
-	InsertUser(Key int) (*core.User, bool, error)
+	InsertUser(Key int) (*core.User, error)
 
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
 	SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error)

@@ -27,7 +27,7 @@ func init() {
 
 // Типы профилирования приложения
 const (
-	noneProfile = iota
-	baseProfile
-	resultProfile
+	noneProfile   = iota // Нет профилирования
+	baseProfile          // Профилирование в файл base
+	resultProfile        // Профилирование в файл result
 )

@@ -107,7 +107,7 @@ func TestRoot(t *testing.T) {
 
 	storage := mocks.NewMockStorager(ctrl)
 
-	storage.EXPECT().InsertUser(gomock.Any()).Return(&core.User{Key: 1000}, false, nil).MaxTimes(3)
+	storage.EXPECT().InsertUser(gomock.Any()).Return(&core.User{Key: 1000, WasUnathorized: false}, nil).MaxTimes(3)
 	storage.EXPECT().InsertURL("http://double.com", gomock.Any(), gomock.Any()).Return(&core.URL{Key: "short", HasBeenShorted: true}, nil)
 	storage.EXPECT().InsertURL("http://err", gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("ошибка"))
 	storage.EXPECT().InsertURL("http://valid.com", gomock.Any(), gomock.Any()).Return(&core.URL{Key: "short", HasBeenShorted: false}, nil)

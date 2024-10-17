@@ -27,26 +27,23 @@ InsertUser принимает идентификатор пользовател�
 
 Возвращает по идентификатору уже имеющегося в наличии пользователя, если такового нет, то создает нового и возвращает что пользователь не был авторизован по переданному идентификатору
 */
-func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
+func (s postgresStorage) InsertUser(Key int) (*core.User, error) {
 
 	// ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	// defer cancel()
 
 	ctx := context.TODO()
-	var isUnathorized bool
-
 	//Ищем пользователя
 	err := s.preparedStatements["SelectUser"].GetContext(ctx, &Key, Key)
 
 	//При любой ошибке (нет пользователя с таким ИД или передан 0 в Key) получаем нового
 	if err != nil {
-		isUnathorized = true
 		err = s.preparedStatements["InsertUser"].GetContext(ctx, &Key, time.Now().Format(time.DateTime))
 		if err != nil {
-			return nil, isUnathorized, fmt.Errorf("%s: %w", "ошибка при InsertUser", err)
+			return nil, fmt.Errorf("%s: %w", "ошибка при InsertUser", err)
 		}
 	}
-	return &core.User{Key: Key}, isUnathorized, nil
+	return &core.User{Key: Key, WasUnathorized: false}, nil
 }
 
 /*

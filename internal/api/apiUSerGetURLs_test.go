@@ -22,9 +22,9 @@ func TestAPIUserGetURLs(t *testing.T) {
 	userURLs = append(userURLs, core.UserURLPair{UserKey: 1000, Short: "1", Origin: "http://1.ru"})
 	userURLs = append(userURLs, core.UserURLPair{UserKey: 1000, Short: "2", Origin: "http://2.com"})
 
-	user := &core.User{Key: 1000}
+	user := &core.User{Key: 1000, WasUnathorized: false}
 
-	storage.EXPECT().InsertUser(gomock.Any()).Return(user, false, nil).AnyTimes()
+	storage.EXPECT().InsertUser(gomock.Any()).Return(user, nil).AnyTimes()
 	storage.EXPECT().SelectUserURLHistory(user).Return(userURLs, nil)
 
 	s := Server{Storage: storage, BaseURL: "http:tiny.com"}

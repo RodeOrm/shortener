@@ -19,7 +19,7 @@ func TestAPIUserDeleteURLs(t *testing.T) {
 
 	storage := mocks.NewMockStorager(ctrl)
 
-	storage.EXPECT().InsertUser(gomock.Any()).Return(&core.User{Key: 1000}, false, nil).AnyTimes()
+	storage.EXPECT().InsertUser(gomock.Any()).Return(&core.User{Key: 1000, WasUnathorized: false}, nil).AnyTimes()
 	storage.EXPECT().DeleteURLs(gomock.Any()).Return(nil).AnyTimes()
 
 	s := Server{Storage: storage, DeleteQueue: &Queue{ch: make(chan *core.URL)}}
@@ -29,7 +29,7 @@ func TestAPIUserDeleteURLs(t *testing.T) {
 	defer srv.Close()
 
 	worker := NewWorker(1, s.DeleteQueue, storage, 1)
-	go worker.Loop()
+	go worker.loop()
 
 	testCases := []struct {
 		name         string

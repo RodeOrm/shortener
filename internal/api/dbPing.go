@@ -5,10 +5,9 @@ import (
 	"net/http"
 )
 
-/*
-Хендлер GET /ping, который при запросе проверяет соединение с базой данных.
-При успешной проверке хендлер должен вернуть HTTP-статус 200 OK, при неуспешной — 500 Internal Server Error.
-*/
+// PingDBHandler - обработчик для метода GET для маршрута /ping, который при запросе проверяет соединение с базой данных.
+//
+// При успешной проверке возвращает статус 200 OK, при неуспешной — 500 Internal Server Error.
 func (h Server) PingDBHandler(w http.ResponseWriter, r *http.Request) {
 	err := h.Storage.PingDB()
 	if err == nil {
