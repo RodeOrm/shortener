@@ -23,7 +23,7 @@ func TestRootURL(t *testing.T) {
 
 	s := Server{Storage: storage}
 
-	handler := http.HandlerFunc(s.rootURLHandler)
+	handler := http.HandlerFunc(s.RootURLHandler)
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 

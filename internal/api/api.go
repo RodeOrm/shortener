@@ -21,7 +21,7 @@ func ServerStart(s *Server) error {
 	r := mux.NewRouter()
 	r.HandleFunc("/", s.RootHandler).Methods(http.MethodPost)
 	r.HandleFunc("/ping", s.PingDBHandler).Methods(http.MethodGet)
-	r.HandleFunc("/{URL}", s.rootURLHandler).Methods(http.MethodGet)
+	r.HandleFunc("/{URL}", s.RootURLHandler).Methods(http.MethodGet)
 
 	r.HandleFunc("/api/shorten", s.APIShortenHandler).Methods(http.MethodPost)
 	r.HandleFunc("/api/user/urls", s.APIUserGetURLsHandler).Methods(http.MethodGet)
