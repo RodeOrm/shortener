@@ -167,15 +167,18 @@ func (s fileStorage) getNextFreeKey() int {
 	return maxNumber + 1
 }
 
+// Close фиктивно закрывает соединение
 func (s fileStorage) Close() {
 	fmt.Println("Закрыто")
 }
 
+// DeleteURLs фиктивно удаляет URL
 func (s fileStorage) DeleteURLs(URLs []core.URL) error {
 	return nil
 }
 
-func (s fileStorage) CheckFile(filePath string) error {
+// проверяет файл и создает новый или использует старый
+func сheckFile(filePath string) error {
 	fileInfo, err := os.Stat(filePath)
 
 	if errors.Is(err, os.ErrNotExist) {
@@ -192,10 +195,12 @@ func (s fileStorage) CheckFile(filePath string) error {
 	return nil
 }
 
+// Проверяет соединение
 func (s fileStorage) Ping() error {
 	return nil
 }
 
+// fileStorage реализация хранилища в файле
 type fileStorage struct {
 	filePath     string
 	users        map[int]*core.User

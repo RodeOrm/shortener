@@ -10,6 +10,7 @@ import (
 	"github.com/rodeorm/shortener/internal/core"
 )
 
+// Реализация хранилища в СУБД Postgres
 type postgresStorage struct {
 	DB                 *sqlx.DB    // Драйвер подключения к СУБД
 	DBName             string      // Имя БД из конфиг.файла
@@ -18,6 +19,7 @@ type postgresStorage struct {
 	preparedStatements map[string]*sqlx.Stmt
 }
 
+// Проверка соединения
 func (s postgresStorage) Ping() error {
 	return s.DB.Ping()
 }
@@ -70,6 +72,7 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (*core.
 
 }
 
+// getShortURL выдает сокращенный URL
 func (s postgresStorage) getShortURL(ctx context.Context, URL string) (*core.URL, error) {
 	url := core.URL{OriginalURL: URL}
 	// Смотрим - не сокращали ли урл ранее, если сокращали, то возвращаем ключ для сокращенного
@@ -122,10 +125,12 @@ func (s postgresStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLPa
 	return urls, nil
 }
 
+// Close закрывает соединение
 func (s postgresStorage) Close() {
 	s.DB.Close()
 }
 
+// DeleteURLs удаляет URL (помечает как удаленные)
 func (s postgresStorage) DeleteURLs(URLs []core.URL) error {
 	tx := s.DB.MustBegin()
 	defer tx.Rollback()
@@ -148,6 +153,7 @@ func (s postgresStorage) DeleteURLs(URLs []core.URL) error {
 	return nil
 }
 
+// createTables создает таблицы, если они не созданы ранее
 func (s postgresStorage) createTables(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx,
 		"CREATE TABLE IF NOT EXISTS  Users"+

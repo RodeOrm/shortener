@@ -81,7 +81,7 @@ func InitFileStorage(filePath string) (*fileStorage, error) {
 	usrURL := make(map[int]*[]core.UserURLPair)
 
 	storage := fileStorage{filePath: filePath, users: usr, userURLPairs: usrURL}
-	if err := storage.CheckFile(filePath); err != nil {
+	if err := сheckFile(filePath); err != nil {
 		return nil, err
 	}
 	logger.Log.Info("Init storage",
