@@ -80,27 +80,16 @@ func InitFileStorage(filePath string) (*fileStorage, error) {
 	usr := make(map[int]*core.User)
 	usrURL := make(map[int]*[]core.UserURLPair)
 
-	/*
-		if err := checkFile(filePath); err != nil {
-			return nil, err
-		} */
 	storage := fileStorage{filePath: filePath, users: usr, userURLPairs: usrURL}
-	err := checkFile(filePath)
-	if err != nil {
+	if err := storage.CheckFile(filePath); err != nil {
 		return nil, err
 	}
-
 	logger.Log.Info("Init storage",
 		zap.String("Storage", "File storage"),
 	)
 
 	return &storage, nil
 
-	logger.Log.Info("Init storage",
-		zap.String("Storage", "File storage"),
-	)
-
-	return &storage, nil
 }
 
 // InitPostgresStorage создает хранилище данных в БД на экземпляре Postgres

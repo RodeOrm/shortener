@@ -9,8 +9,6 @@ import (
 	"os"
 
 	"github.com/rodeorm/shortener/internal/core"
-	"github.com/rodeorm/shortener/internal/logger"
-	"go.uber.org/zap/zapcore"
 )
 
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
@@ -111,7 +109,7 @@ func (s fileStorage) InsertUser(Key int) (*core.User, error) {
 	return user, nil
 }
 
-// insertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
+// InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
 func (s fileStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
 	URLPair := &core.UserURLPair{UserKey: user.Key, Short: shorten, Origin: origin}
 
@@ -139,7 +137,6 @@ func (s fileStorage) insertUserURLPair(shorten, origin string, user *core.User) 
 	return nil
 }
 
-// SelectUserByKey выбирает пользователя по ключу
 func (s fileStorage) SelectUserByKey(Key int) (*core.User, error) {
 	user, isExist := s.users[Key]
 	if !isExist {
@@ -170,40 +167,35 @@ func (s fileStorage) getNextFreeKey() int {
 	return maxNumber + 1
 }
 
-// CloseConnection закрывает соедение
 func (s fileStorage) Close() {
-	logger.Log.Info("Закрыто")
+	fmt.Println("Закрыто")
 }
 
-// DeleteURLs ничего не делает. Для файла не было требования к реализации удаления URL
 func (s fileStorage) DeleteURLs(URLs []core.URL) error {
 	return nil
 }
 
-// Проверяет наличие файла и при отсутствии создает его
-func checkFile(filePath string) error {
+func (s fileStorage) CheckFile(filePath string) error {
 	fileInfo, err := os.Stat(filePath)
 
 	if errors.Is(err, os.ErrNotExist) {
 		newFile, err := os.Create(filePath)
 		if err != nil {
-			logger.Log.Fatal(err.Error())
+			log.Fatal(err)
 			return err
 		}
 		newFile.Close()
-		logger.Log.Info("создан файл", zapcore.Field{String: newFile.Name()})
+		fmt.Println("Создан файл: ", newFile.Name())
 		return nil
 	}
-	logger.Log.Info("найден файл", zapcore.Field{String: fileInfo.Name()})
+	fmt.Println("Файл уже есть: ", fileInfo.Name())
 	return nil
 }
 
-// Ping проверяет наличие файла и при отсутствии создает его
 func (s fileStorage) Ping() error {
-	return checkFile(s.filePath)
+	return nil
 }
 
-// fileStorage - реализация хранилища в файле
 type fileStorage struct {
 	filePath     string
 	users        map[int]*core.User
