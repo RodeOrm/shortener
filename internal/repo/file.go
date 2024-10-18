@@ -137,6 +137,7 @@ func (s fileStorage) insertUserURLPair(shorten, origin string, user *core.User) 
 	return nil
 }
 
+// SelectUserByKey выдает пользователя по ключу
 func (s fileStorage) SelectUserByKey(Key int) (*core.User, error) {
 	user, isExist := s.users[Key]
 	if !isExist {
