@@ -15,7 +15,7 @@ import (
 // ServerStart запускает веб-сервер
 func ServerStart(s *Server) error {
 
-	defer s.Storage.CloseConnection()
+	defer s.Storage.Close()
 	defer close(s.DeleteQueue.ch)
 
 	r := mux.NewRouter()

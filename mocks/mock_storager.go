@@ -34,16 +34,16 @@ func (m *MockStorager) EXPECT() *MockStoragerMockRecorder {
 	return m.recorder
 }
 
-// CloseConnection mocks base method.
-func (m *MockStorager) CloseConnection() {
+// Close mocks base method.
+func (m *MockStorager) Close() {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "CloseConnection")
+	m.ctrl.Call(m, "Close")
 }
 
-// CloseConnection indicates an expected call of CloseConnection.
-func (mr *MockStoragerMockRecorder) CloseConnection() *gomock.Call {
+// Close indicates an expected call of Close.
+func (mr *MockStoragerMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseConnection", reflect.TypeOf((*MockStorager)(nil).CloseConnection))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockStorager)(nil).Close))
 }
 
 // DeleteURLs mocks base method.
@@ -90,18 +90,18 @@ func (mr *MockStoragerMockRecorder) InsertUser(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUser", reflect.TypeOf((*MockStorager)(nil).InsertUser), arg0)
 }
 
-// PingDB mocks base method.
-func (m *MockStorager) PingDB() error {
+// Ping mocks base method.
+func (m *MockStorager) Ping() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PingDB")
+	ret := m.ctrl.Call(m, "Ping")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// PingDB indicates an expected call of PingDB.
-func (mr *MockStoragerMockRecorder) PingDB() *gomock.Call {
+// Ping indicates an expected call of Ping.
+func (mr *MockStoragerMockRecorder) Ping() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingDB", reflect.TypeOf((*MockStorager)(nil).PingDB))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ping", reflect.TypeOf((*MockStorager)(nil).Ping))
 }
 
 // SelectOriginalURL mocks base method.

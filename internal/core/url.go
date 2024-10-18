@@ -25,6 +25,8 @@ func CheckURLValidityByRegExp(u string) bool {
 	return urlRegex.MatchString(u)
 }
 
+// GetURLsFromString получает строку, содержащую URL и пользователя.
+// Возвращает слайс URL или ошибку
 func GetURLsFromString(s string, u *User) ([]URL, error) {
 	if u.Key <= 0 {
 		return nil, fmt.Errorf("некорректный пользователь: %d", u.Key)

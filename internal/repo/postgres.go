@@ -18,7 +18,7 @@ type postgresStorage struct {
 	preparedStatements map[string]*sqlx.Stmt
 }
 
-func (s postgresStorage) PingDB() error {
+func (s postgresStorage) Ping() error {
 	return s.DB.Ping()
 }
 
@@ -122,7 +122,7 @@ func (s postgresStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLPa
 	return urls, nil
 }
 
-func (s postgresStorage) CloseConnection() {
+func (s postgresStorage) Close() {
 	s.DB.Close()
 }
 

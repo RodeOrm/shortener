@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/rodeorm/shortener/internal/core"
+	"github.com/rodeorm/shortener/internal/logger"
 )
 
 type memoryStorage struct {
@@ -82,6 +83,7 @@ func (s memoryStorage) insertUserURLPair(shorten, origin string, user *core.User
 	return nil
 }
 
+// SelectUserByKey выбирает пользователя по ключу
 func (s memoryStorage) SelectUserByKey(Key int) (*core.User, error) {
 	user, isExist := s.users[Key]
 	if !isExist {
@@ -112,14 +114,19 @@ func (s memoryStorage) getNextFreeKey() int {
 	return maxNumber + 1
 }
 
-func (s memoryStorage) CloseConnection() {
-	fmt.Println("Закрыто")
+// Close закрывает доступ
+func (s memoryStorage) Close() {
+	logger.Log.Info("сделали вид, что закрыт доступ к хранению данных в памяти")
 }
 
+// DeleteURLs удаляет URL
 func (s memoryStorage) DeleteURLs(URLs []core.URL) error {
+	logger.Log.Info("сделали вид, что удалили URL из памяти")
 	return nil
 }
 
-func (s memoryStorage) PingDB() error {
+// Ping проверяет доступ
+func (s memoryStorage) Ping() error {
+	logger.Log.Info("сделали вид, что проверили доступ к памяти")
 	return nil
 }

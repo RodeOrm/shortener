@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Storager - абстрация для взаимодействия с хранилищем данных
 type Storager interface {
 	/*
 		InsertURL принимает оригинальный URL, базовый урл для генерации коротких адресов и пользователя.
@@ -27,12 +28,17 @@ type Storager interface {
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
 	SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error)
 
-	// Массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
+	// DeleteURLs массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
 	DeleteURLs(URLs []core.URL) error
 
-	// Только для хранения данных в Postgres
-	CloseConnection()
-	PingDB() error
+	// Ниже методы специфичные для СУБД
+	// Можно, конечно, определить несколько интерфейсов (чтобы специфичный для СУБД включал в себя интерфейсы общие)
+	// Но это как показала практика - это лишние трудозатраты, усложняющие читабельность кода в местах использования интерфейса, поэтому вернул как было
+
+	// Close закрывает соединение
+	Close()
+	// Ping проверяет соединение
+	Ping() error
 }
 
 // NewStorage определяет место для хранения данных
@@ -73,11 +79,11 @@ func InitMemoryStorage() *memoryStorage {
 func InitFileStorage(filePath string) (*fileStorage, error) {
 	usr := make(map[int]*core.User)
 	usrURL := make(map[int]*[]core.UserURLPair)
-	storage := fileStorage{filePath: filePath, users: usr, userURLPairs: usrURL}
-	err := storage.CheckFile(filePath)
-	if err != nil {
+
+	if err := checkFile(filePath); err != nil {
 		return nil, err
 	}
+	storage := fileStorage{filePath: filePath, users: usr, userURLPairs: usrURL}
 
 	logger.Log.Info("Init storage",
 		zap.String("Storage", "File storage"),

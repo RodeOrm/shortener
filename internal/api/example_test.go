@@ -9,7 +9,7 @@ import (
 	"github.com/rodeorm/shortener/internal/repo"
 )
 
-func ExampleServer_apiShortenHandler() {
+func ExampleServer_APIShortenHandler() {
 	server := Server{ServerAddress: "http://localhost:8080", Storage: repo.NewStorage("", "")} // С хранилищем в памяти, поэтому мокать  не надо
 	body := `{"url":"http://www.yandex.ru"}`
 	reqURL := "http://localhost:8080/api/shorten"

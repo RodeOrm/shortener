@@ -18,7 +18,7 @@ func TestDBPing(t *testing.T) {
 
 	storage := mocks.NewMockStorager(ctrl)
 
-	storage.EXPECT().PingDB().Return(nil).AnyTimes()
+	storage.EXPECT().Ping().Return(nil).AnyTimes()
 
 	s := Server{Storage: storage}
 

@@ -37,23 +37,26 @@ func WithLog(h http.Handler) http.Handler {
 }
 
 type (
+	//responseData - данные ответа для логирования
 	responseData struct {
 		status int
 		size   int
 	}
-
+	//loggingResponseWriter - декорированная абстракция для ResponseWriter
 	loggingResponseWriter struct {
 		http.ResponseWriter
 		responseData *responseData
 	}
 )
 
+// Write записывает размер
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size // захватываем размер
 	return size, err
 }
 
+// WriteHeader записывает код статуса
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode // захватываем код статуса
