@@ -192,14 +192,14 @@ func сheckFile(filePath string) error {
 	if errors.Is(err, os.ErrNotExist) {
 		newFile, err := os.Create(filePath)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 			return err
 		}
 		newFile.Close()
-		fmt.Println("Создан файл: ", newFile.Name())
+		log.Println("Создан файл: ", newFile.Name())
 		return nil
 	}
-	fmt.Println("Файл уже есть: ", fileInfo.Name())
+	log.Println("Файл уже есть: ", fileInfo.Name())
 	return nil
 }
 

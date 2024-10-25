@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"log"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
@@ -11,15 +12,19 @@ import (
 )
 
 var (
-	ms   *memoryStorage
-	fs   *fileStorage
-	ps   *postgresStorage
-	once sync.Once
+	ms     *memoryStorage
+	fs     *fileStorage
+	ps     *postgresStorage
+	onceMS sync.Once
+	onceFS sync.Once
+	oncePS sync.Once
 )
 
 // GetStorage определяет место для хранения данных
 func GetStorages(filePath, dbConnectionString string) (*memoryStorage, *fileStorage, *postgresStorage) {
-
+	logger.Log.Info("Init storage",
+		zap.String("Начали процесс выбора хранилища", filePath),
+	)
 	ps, err := GetPostgresStorage(dbConnectionString)
 	if err == nil {
 		return nil, nil, ps
@@ -28,29 +33,33 @@ func GetStorages(filePath, dbConnectionString string) (*memoryStorage, *fileStor
 	if err == nil {
 		return nil, fs, nil
 	}
-
+	logger.Log.Info("Init storage",
+		zap.String("хранилище в памяти", ""),
+	)
 	return GetMemoryStorage(), nil, nil
 }
 
 // GetMemoryStorage возвращает хранилище данных в оперативной памяти (создает, если его не было ранее)
 func GetMemoryStorage() *memoryStorage {
-	once.Do(
+	onceMS.Do(
 		func() {
 			ots := make(map[string]string)
 			sto := make(map[string]string)
 			usr := make(map[int]*core.User)
 			usrURL := make(map[int]*[]core.UserURLPair)
 			ms = &memoryStorage{originalToShort: ots, shortToOriginal: sto, users: usr, userURLPairs: usrURL}
+			log.Println("здесь должна быть реализация - pre", ms)
 			logger.Log.Info("Init storage",
 				zap.String("Storage", "Memory storage"),
 			)
 		})
+	log.Println("здесь должна быть реализация", ms)
 	return ms
 }
 
 // GetFileStorage возвращает хранилище данных на файловой системе  (создает, если его не было ранее)
 func GetFileStorage(filePath string) (*fileStorage, error) {
-	once.Do(
+	onceFS.Do(
 		func() {
 			usr := make(map[int]*core.User)
 			usrURL := make(map[int]*[]core.UserURLPair)
@@ -61,6 +70,9 @@ func GetFileStorage(filePath string) (*fileStorage, error) {
 			)
 		})
 	if err := сheckFile(filePath); err != nil {
+		logger.Log.Error("can't define file storage",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 	return fs, nil
@@ -72,7 +84,7 @@ func GetPostgresStorage(connectionString string) (*postgresStorage, error) {
 		dbErr error
 		db    *sqlx.DB
 	)
-	once.Do(
+	oncePS.Do(
 		func() {
 			db, dbErr = sqlx.Open("pgx", connectionString)
 			if dbErr != nil {
@@ -93,9 +105,15 @@ func GetPostgresStorage(connectionString string) (*postgresStorage, error) {
 			if dbErr = ps.prepareStatements(); dbErr != nil {
 				return
 			}
+			logger.Log.Info("Init storage",
+				zap.String("Storage", "Postgres storage"),
+			)
 		})
 
 	if dbErr != nil {
+		logger.Log.Error("can't define postgres storage",
+			zap.Error(dbErr),
+		)
 		return nil, dbErr
 	}
 

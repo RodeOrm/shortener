@@ -42,9 +42,8 @@ func ServerStart(s *Server) error {
 
 	if s.DBStorage != nil {
 		defer s.DBStorage.Close()
+		defer close(s.DeleteQueue.ch)
 	}
-
-	defer close(s.DeleteQueue.ch)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", s.RootHandler).Methods(http.MethodPost)
