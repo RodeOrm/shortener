@@ -114,19 +114,8 @@ func (s *memoryStorage) getNextFreeKey() int {
 	return maxNumber + 1
 }
 
-// Close закрывает доступ
-func (s *memoryStorage) Close() {
-	logger.Log.Info("сделали вид, что закрыт доступ к хранению данных в памяти")
-}
-
 // DeleteURLs удаляет URL
 func (s *memoryStorage) DeleteURLs(URLs []core.URL) error {
 	logger.Log.Info("сделали вид, что удалили URL из памяти")
-	return nil
-}
-
-// Ping проверяет доступ
-func (s *memoryStorage) Ping() error {
-	logger.Log.Info("сделали вид, что проверили доступ к памяти")
 	return nil
 }

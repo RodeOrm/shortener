@@ -175,11 +175,6 @@ func (s *fileStorage) getNextFreeKey() int {
 	return maxNumber + 1
 }
 
-// Close фиктивно закрывает соединение
-func (s *fileStorage) Close() {
-	fmt.Println("Закрыто")
-}
-
 // DeleteURLs фиктивно удаляет URL
 func (s *fileStorage) DeleteURLs(URLs []core.URL) error {
 	return nil
@@ -200,10 +195,5 @@ func сheckFile(filePath string) error {
 		return nil
 	}
 	log.Println("Файл уже есть: ", fileInfo.Name())
-	return nil
-}
-
-// Проверяет соединение
-func (s *fileStorage) Ping() error {
 	return nil
 }
