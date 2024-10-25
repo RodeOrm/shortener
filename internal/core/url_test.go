@@ -67,7 +67,7 @@ func BenchmarkGetURLsFromString(b *testing.B) {
 		{urls: "[\"6qxTVvsy\", \"RTfd56hn\", \"Jlfd67ds\", \"Jlfd67ds\", \"Jlfd67ds\", \"Jlfd67ds\", \"Jlfd67ds\"]", user: User{Key: 2}},
 	}
 
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < b.N; i++ {
 		for _, v := range tests {
 			GetURLsFromString(v.urls, &v.user)
 		}

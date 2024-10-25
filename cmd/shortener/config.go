@@ -81,16 +81,26 @@ func config() *api.Server {
 	}
 
 	logger.Initialize("info")
-
 	server := &api.Server{
 		ServerAddress: serverAddress,
-		Storage:       repo.NewStorage(fileStoragePath, databaseConnectionString),
 		DeleteQueue:   api.NewQueue(queueSize),
 		BaseURL:       baseURL,
 		WorkerCount:   workerCount,
 		BatchSize:     batchSize,
 		ProfileType:   profileType,
 	}
-
+	ms, fs, ps := repo.GetStorages(fileStoragePath, databaseConnectionString)
+	if ps != nil {
+		server.URLStorage = ps
+		server.UserStorage = ps
+		server.DBStorage = ps
+		return server
+	} else if fs != nil {
+		server.URLStorage = fs
+		server.UserStorage = fs
+		return server
+	}
+	server.URLStorage = ms
+	server.UserStorage = ms
 	return server
 }

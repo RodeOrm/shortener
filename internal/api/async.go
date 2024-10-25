@@ -6,8 +6,26 @@ import (
 
 	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/internal/logger"
-	"github.com/rodeorm/shortener/internal/repo"
 )
+
+// Worker структура, удаляющая URL
+type Worker struct {
+	id         int
+	batchSize  int
+	queue      *Queue
+	urlStorage URLStorager
+}
+
+// NewWorker создает новый Worker
+func NewWorker(id int, queue *Queue, storage URLStorager, batchSize int) *Worker {
+	w := Worker{
+		id:         id,
+		queue:      queue,
+		urlStorage: storage,
+		batchSize:  batchSize,
+	}
+	return &w
+}
 
 // Push помещает пачку URL в очередь
 func (q *Queue) Push(url []core.URL) error {
@@ -52,27 +70,8 @@ func (q *Queue) popWait(n int) []core.URL {
 	return urls
 }
 
-// Worker структура, удаляющая URL
-type Worker struct {
-	id        int
-	batchSize int
-	queue     *Queue
-	storage   repo.Storager
-}
-
-// NewWorker создает новый Worker
-func NewWorker(id int, queue *Queue, storage repo.Storager, batchSize int) *Worker {
-	w := Worker{
-		id:        id,
-		queue:     queue,
-		storage:   storage,
-		batchSize: batchSize,
-	}
-	return &w
-}
-
-// Loop основной рабочий метод Worker
-func (w *Worker) loop() {
+// delete основной рабочий метод Worker, удаляющего url из очереди
+func (w *Worker) delete() {
 	logger.Log.Info(fmt.Sprintf("воркер #%d стартовал", w.id))
 
 	for {
@@ -81,7 +80,7 @@ func (w *Worker) loop() {
 		if len(urls) == 0 {
 			continue
 		}
-		err := w.storage.DeleteURLs(urls)
+		err := w.urlStorage.DeleteURLs(urls)
 		if err != nil {
 			logger.Log.Error(fmt.Sprintf("ошибка при работе воркера %v стартовал", err))
 			continue

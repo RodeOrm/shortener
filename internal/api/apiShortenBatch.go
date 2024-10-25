@@ -53,7 +53,7 @@ func (h Server) APIShortenBatchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, value := range urlReq {
-		url, err := h.Storage.InsertURL(value.Origin, h.BaseURL, user)
+		url, err := h.URLStorage.InsertURL(value.Origin, h.BaseURL, user)
 		if err != nil {
 			handleError(w, err, "APIShortenBatch 3")
 			return

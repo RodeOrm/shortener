@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"net/http/pprof"
 	"time"
@@ -9,13 +8,42 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/rodeorm/shortener/internal/api/middleware"
-	"github.com/rodeorm/shortener/internal/repo"
 )
+
+// Server абстракция, отражающая веб-сервер и его характеристики
+type Server struct {
+	//Количество воркеров, асинхронно удаляющих url
+	WorkerCount int
+	//Размер пачки для удаления
+	BatchSize int
+	//Тип профилирования (если необходимо)
+	ProfileType int
+
+	//Адрес запуска веб-сервера
+	ServerAddress string
+	//Базовый URL для сокращенных адресов
+	BaseURL string
+	//Connection string для БД
+	DatabaseConnectionString string
+
+	//Хранилище данных для URL
+	URLStorage URLStorager
+	// Хранилище данных для URL
+	UserStorage UserStorager
+	// Хранилище данных для DB
+	DBStorage DBStorager
+
+	//Очередь удаления
+	DeleteQueue *Queue
+}
 
 // ServerStart запускает веб-сервер
 func ServerStart(s *Server) error {
 
-	defer s.Storage.Close()
+	if s.DBStorage != nil {
+		defer s.DBStorage.Close()
+	}
+
 	defer close(s.DeleteQueue.ch)
 
 	r := mux.NewRouter()
@@ -46,33 +74,13 @@ func ServerStart(s *Server) error {
 	}
 
 	for i := 0; i < s.WorkerCount; i++ {
-		w := NewWorker(i, s.DeleteQueue, s.Storage, s.BatchSize)
-		go w.loop()
+		w := NewWorker(i, s.DeleteQueue, s.URLStorage, s.BatchSize)
+		go w.delete()
 	}
 
-	log.Fatal(srv.ListenAndServe())
-
+	err := srv.ListenAndServe()
+	if err != nil {
+		return err
+	}
 	return nil
-}
-
-// Server абстракция, отражающая веб-сервер и его характеристики
-type Server struct {
-	//Количество воркеров, асинхронно удаляющих url
-	WorkerCount int
-	//Размер пачки для удаления
-	BatchSize int
-	//Тип профилирования (если необходимо)
-	ProfileType int
-
-	//Адрес запуска веб-сервера
-	ServerAddress string
-	//Базовый URL для сокращенных адресов
-	BaseURL string
-	//Connection string для БД
-	DatabaseConnectionString string
-
-	//Хранилище данных
-	Storage repo.Storager
-	//Очередь удаления
-	DeleteQueue *Queue
 }

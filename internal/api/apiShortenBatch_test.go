@@ -8,10 +8,9 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAPIShortenBatch(t *testing.T) {
@@ -25,7 +24,7 @@ func TestAPIShortenBatch(t *testing.T) {
 	storage.EXPECT().InsertURL("http://err", gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("ошибка"))
 	storage.EXPECT().InsertURL("http://valid.com", gomock.Any(), gomock.Any()).Return(&core.URL{Key: "short", HasBeenShorted: false}, nil)
 
-	s := Server{Storage: storage}
+	s := Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}
 
 	handler := http.HandlerFunc(s.APIShortenBatchHandler)
 	srv := httptest.NewServer(handler)

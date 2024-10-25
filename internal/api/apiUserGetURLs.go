@@ -19,7 +19,7 @@ func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err, "APIUserGetURLsHandler 1")
 		return
 	}
-	history, err := h.Storage.SelectUserURLHistory(user)
+	history, err := h.UserStorage.SelectUserURLHistory(user)
 	if err != nil {
 		handleError(w, err, "APIUserGetURLsHandler 1")
 		return

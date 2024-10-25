@@ -4,6 +4,13 @@ import (
 	"flag"
 )
 
+// Типы профилирования приложения
+const (
+	noneProfile   = iota // Нет профилирования
+	baseProfile          // Профилирование в файл base
+	resultProfile        // Профилирование в файл result
+)
+
 var a, b, f, d, w, s, q, p *string
 
 func init() {
@@ -24,10 +31,3 @@ func init() {
 	//флаг -p, отвечающий за тип профилирования
 	p = flag.String("p", "", "PROFILE_TYPE")
 }
-
-// Типы профилирования приложения
-const (
-	noneProfile   = iota // Нет профилирования
-	baseProfile          // Профилирование в файл base
-	resultProfile        // Профилирование в файл result
-)

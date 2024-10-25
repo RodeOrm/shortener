@@ -21,7 +21,7 @@ func (h Server) RootHandler(w http.ResponseWriter, r *http.Request) {
 
 	bodyBytes, _ := io.ReadAll(r.Body)
 	bodyString := string(bodyBytes)
-	url, err := h.Storage.InsertURL(bodyString, h.BaseURL, user)
+	url, err := h.URLStorage.InsertURL(bodyString, h.BaseURL, user)
 	if err != nil {
 		handleError(w, err, "RootHandler 2")
 		return

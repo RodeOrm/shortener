@@ -21,7 +21,7 @@ func TestRootURL(t *testing.T) {
 
 	storage.EXPECT().SelectOriginalURL(gomock.Any()).Return(&core.URL{Key: "Short", HasBeenDeleted: true}, nil).AnyTimes()
 
-	s := Server{Storage: storage}
+	s := Server{URLStorage: storage, UserStorage: storage}
 
 	handler := http.HandlerFunc(s.RootURLHandler)
 	srv := httptest.NewServer(handler)

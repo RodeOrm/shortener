@@ -11,8 +11,15 @@ import (
 	"github.com/rodeorm/shortener/internal/core"
 )
 
+// fileStorage реализация хранилища в файле
+type fileStorage struct {
+	filePath     string
+	users        map[int]*core.User
+	userURLPairs map[int]*[]core.UserURLPair
+}
+
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
-func (s fileStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
+func (s *fileStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
 	url := core.URL{OriginalURL: core.GetClearURL(URL, "")}
 
 	if !core.CheckURLValidity(URL) {
@@ -51,7 +58,7 @@ func (s fileStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL,
 }
 
 // getShortlURLFromFile возвращает из файла сокращенный URL по оригинальному URL
-func (s fileStorage) getShortlURLFromFile(URL string) (string, bool, error) {
+func (s *fileStorage) getShortlURLFromFile(URL string) (string, bool, error) {
 
 	file, err := os.Open(s.filePath)
 	if err != nil {
@@ -72,7 +79,7 @@ func (s fileStorage) getShortlURLFromFile(URL string) (string, bool, error) {
 }
 
 // SelectOriginalURL принимает на вход короткий URL (относительный, без имени домена), извлекает из него ключ и возвращает оригинальный URL из хранилища
-func (s fileStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
+func (s *fileStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 
 	file, err := os.Open(s.filePath)
 	if err != nil {
@@ -94,7 +101,7 @@ func (s fileStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 }
 
 // InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
-func (s fileStorage) InsertUser(Key int) (*core.User, error) {
+func (s *fileStorage) InsertUser(Key int) (*core.User, error) {
 	if Key <= 0 {
 		user := &core.User{Key: s.getNextFreeKey(), WasUnathorized: true}
 		s.users[user.Key] = user
@@ -110,7 +117,7 @@ func (s fileStorage) InsertUser(Key int) (*core.User, error) {
 }
 
 // InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
-func (s fileStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
+func (s *fileStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
 	URLPair := &core.UserURLPair{UserKey: user.Key, Short: shorten, Origin: origin}
 
 	userURLPairs, isExist := s.userURLPairs[URLPair.UserKey]
@@ -138,7 +145,7 @@ func (s fileStorage) insertUserURLPair(shorten, origin string, user *core.User) 
 }
 
 // SelectUserByKey выдает пользователя по ключу
-func (s fileStorage) SelectUserByKey(Key int) (*core.User, error) {
+func (s *fileStorage) SelectUserByKey(Key int) (*core.User, error) {
 	user, isExist := s.users[Key]
 	if !isExist {
 		return nil, fmt.Errorf("нет пользователя с ключом: %d", Key)
@@ -147,7 +154,7 @@ func (s fileStorage) SelectUserByKey(Key int) (*core.User, error) {
 }
 
 // SelectUserURL возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-func (s fileStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error) {
+func (s *fileStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error) {
 	if s.userURLPairs[user.Key] == nil {
 		return nil, fmt.Errorf("нет истории")
 	}
@@ -155,7 +162,7 @@ func (s fileStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLPair, 
 }
 
 // getNextFreeKey возвращает ближайший свободный идентификатор пользователя
-func (s fileStorage) getNextFreeKey() int {
+func (s *fileStorage) getNextFreeKey() int {
 	var maxNumber int
 	for maxNumber = range s.users {
 		break
@@ -169,12 +176,12 @@ func (s fileStorage) getNextFreeKey() int {
 }
 
 // Close фиктивно закрывает соединение
-func (s fileStorage) Close() {
+func (s *fileStorage) Close() {
 	fmt.Println("Закрыто")
 }
 
 // DeleteURLs фиктивно удаляет URL
-func (s fileStorage) DeleteURLs(URLs []core.URL) error {
+func (s *fileStorage) DeleteURLs(URLs []core.URL) error {
 	return nil
 }
 
@@ -197,13 +204,6 @@ func сheckFile(filePath string) error {
 }
 
 // Проверяет соединение
-func (s fileStorage) Ping() error {
+func (s *fileStorage) Ping() error {
 	return nil
-}
-
-// fileStorage реализация хранилища в файле
-type fileStorage struct {
-	filePath     string
-	users        map[int]*core.User
-	userURLPairs map[int]*[]core.UserURLPair
 }

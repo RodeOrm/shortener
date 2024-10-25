@@ -6,7 +6,7 @@ import (
 	"runtime/pprof"
 )
 
-func profile(profileType int) {
+func profile(profileType int) error {
 	if profileType != noneProfile {
 		var (
 			fmem *os.File
@@ -19,13 +19,14 @@ func profile(profileType int) {
 			fmem, err = os.Create(`result.pprof`)
 		}
 		if err != nil {
-			panic(err)
+			return err
 		}
 		defer fmem.Close()
 
 		runtime.GC()
 		if err := pprof.WriteHeapProfile(fmem); err != nil {
-			panic(err)
+			return err
 		}
 	}
+	return nil
 }

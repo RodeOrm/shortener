@@ -23,7 +23,7 @@ func (h Server) getUserIdentity(w http.ResponseWriter, r *http.Request) (http.Re
 	if err != nil {
 		user.WasUnathorized = true
 	}
-	user, err = h.Storage.InsertUser(key)
+	user, err = h.UserStorage.InsertUser(key)
 	if err != nil {
 		handleError(w, err, "GetUserIdentity")
 	}

@@ -14,7 +14,7 @@ import (
 // При запросе удалённого URL с помощью хендлера возвращается ответ со статусом 410 Gone.
 func (h Server) RootURLHandler(w http.ResponseWriter, r *http.Request) {
 	currentID := mux.Vars(r)["URL"]
-	url, err := h.Storage.SelectOriginalURL(currentID)
+	url, err := h.URLStorage.SelectOriginalURL(currentID)
 
 	if err != nil {
 		handleError(w, err, "RootHandler 1")
