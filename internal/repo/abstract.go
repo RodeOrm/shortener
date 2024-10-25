@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"log"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
@@ -48,12 +47,10 @@ func GetMemoryStorage() *memoryStorage {
 			usr := make(map[int]*core.User)
 			usrURL := make(map[int]*[]core.UserURLPair)
 			ms = &memoryStorage{originalToShort: ots, shortToOriginal: sto, users: usr, userURLPairs: usrURL}
-			log.Println("здесь должна быть реализация - pre", ms)
 			logger.Log.Info("Init storage",
 				zap.String("Storage", "Memory storage"),
 			)
 		})
-	log.Println("здесь должна быть реализация", ms)
 	return ms
 }
 
