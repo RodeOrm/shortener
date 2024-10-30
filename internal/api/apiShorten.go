@@ -14,7 +14,7 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	url := core.URL{}
 	shortURL := core.ShortenURL{}
 
-	w, user, err := h.GetUserIdentity(w, r)
+	w, user, err := h.getUserIdentity(w, r)
 	if err != nil {
 		handleError(w, err, "APIShortenHandler 1")
 		return
@@ -27,7 +27,7 @@ func (h Server) APIShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlFromStorage, err := h.Storage.InsertURL(url.Key, h.BaseURL, user)
+	urlFromStorage, err := h.URLStorage.InsertURL(url.Key, h.BaseURL, user)
 	url = *urlFromStorage
 	if err != nil {
 		handleError(w, err, "APIShortenHandler 3")

@@ -10,6 +10,7 @@ import (
 	"github.com/rodeorm/shortener/internal/core"
 )
 
+// Реализация хранилища в СУБД Postgres
 type postgresStorage struct {
 	DB                 *sqlx.DB    // Драйвер подключения к СУБД
 	DBName             string      // Имя БД из конфиг.файла
@@ -18,7 +19,8 @@ type postgresStorage struct {
 	preparedStatements map[string]*sqlx.Stmt
 }
 
-func (s postgresStorage) PingDB() error {
+// Проверка соединения
+func (s *postgresStorage) Ping() error {
 	return s.DB.Ping()
 }
 
@@ -27,23 +29,24 @@ InsertUser принимает идентификатор пользовател�
 
 Возвращает по идентификатору уже имеющегося в наличии пользователя, если такового нет, то создает нового и возвращает что пользователь не был авторизован по переданному идентификатору
 */
-func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
+func (s *postgresStorage) InsertUser(Key int) (*core.User, error) {
+
+	// ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	// defer cancel()
 
 	ctx := context.TODO()
-	var isUnathorized bool
-
 	//Ищем пользователя
 	err := s.preparedStatements["SelectUser"].GetContext(ctx, &Key, Key)
 
 	//При любой ошибке (нет пользователя с таким ИД или передан 0 в Key) получаем нового
 	if err != nil {
-		isUnathorized = true
 		err = s.preparedStatements["InsertUser"].GetContext(ctx, &Key, time.Now().Format(time.DateTime))
 		if err != nil {
-			return nil, isUnathorized, fmt.Errorf("%s: %w", "ошибка при InsertUser", err)
+			return nil, fmt.Errorf("%s: %w", "ошибка при InsertUser", err)
 		}
+		return &core.User{Key: Key, WasUnathorized: true}, nil
 	}
-	return &core.User{Key: Key}, isUnathorized, nil
+	return &core.User{Key: Key, WasUnathorized: false}, nil
 }
 
 /*
@@ -51,7 +54,7 @@ func (s postgresStorage) InsertUser(Key int) (*core.User, bool, error) {
 
 Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
 */
-func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
+func (s *postgresStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
 	if !core.CheckURLValidity(URL) {
 		return nil, fmt.Errorf("невалидный URL: %s", URL)
 	}
@@ -69,7 +72,8 @@ func (s postgresStorage) InsertURL(URL, baseURL string, user *core.User) (*core.
 
 }
 
-func (s postgresStorage) getShortURL(ctx context.Context, URL string) (*core.URL, error) {
+// getShortURL выдает сокращенный URL
+func (s *postgresStorage) getShortURL(ctx context.Context, URL string) (*core.URL, error) {
 	url := core.URL{OriginalURL: URL}
 	// Смотрим - не сокращали ли урл ранее, если сокращали, то возвращаем ключ для сокращенного
 	err := s.preparedStatements["SelectShortURL"].GetContext(ctx, &url.Key, url.OriginalURL)
@@ -90,7 +94,7 @@ func (s postgresStorage) getShortURL(ctx context.Context, URL string) (*core.URL
 
 Возвращает соответствующий оригинальный урл, признак, что url ранее уже сокращался; признак, что url удален
 */
-func (s postgresStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
+func (s *postgresStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 	ctx := context.TODO()
 	url := core.URL{Key: shortURL}
 
@@ -106,7 +110,7 @@ func (s postgresStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 }
 
 // SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-func (s postgresStorage) SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error) {
+func (s *postgresStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error) {
 	urls := make([]core.UserURLPair, 0, 1)
 
 	err := s.preparedStatements["SelectUserURLHistory"].Select(&urls, user.Key)
@@ -118,14 +122,16 @@ func (s postgresStorage) SelectUserURLHistory(user *core.User) (*[]core.UserURLP
 	if len(urls) == 0 {
 		return nil, fmt.Errorf("нет истории для пользователя %d", user.Key)
 	}
-	return &urls, nil
+	return urls, nil
 }
 
-func (s postgresStorage) CloseConnection() {
+// Close закрывает соединение
+func (s *postgresStorage) Close() {
 	s.DB.Close()
 }
 
-func (s postgresStorage) DeleteURLs(URLs []core.URL) error {
+// DeleteURLs удаляет URL (помечает как удаленные)
+func (s *postgresStorage) DeleteURLs(URLs []core.URL) error {
 	tx := s.DB.MustBegin()
 	defer tx.Rollback()
 
@@ -147,7 +153,8 @@ func (s postgresStorage) DeleteURLs(URLs []core.URL) error {
 	return nil
 }
 
-func (s postgresStorage) createTables(ctx context.Context) error {
+// createTables создает таблицы, если они не созданы ранее
+func (s *postgresStorage) createTables(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx,
 		"CREATE TABLE IF NOT EXISTS  Users"+
 			"("+
@@ -169,5 +176,54 @@ func (s postgresStorage) createTables(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", "ошибка при создании таблиц", err)
 	}
+	return nil
+}
+
+func (s *postgresStorage) prepareStatements() error {
+
+	nstmtSelectUser, err := s.DB.Preparex(`SELECT ID from Users WHERE ID = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtInsertUser, err := s.DB.Preparex(`INSERT INTO Users (Name) VALUES ($1) RETURNING ID`)
+	if err != nil {
+		return err
+	}
+
+	nstmtSelectShortURL, err := s.DB.Preparex(`SELECT short from Urls WHERE original = $1`)
+	if err != nil {
+		return err
+	}
+	nstmtInsertURL, err := s.DB.Preparex(`INSERT INTO Urls (original, short, userID) SELECT $1, $2, $3`)
+	if err != nil {
+		return err
+	}
+
+	nstmtSelectOriginalURL, err := s.DB.Preparex(`SELECT original, isDeleted FROM Urls WHERE short = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtSelectUserURLHistory, err := s.DB.Preparex(`SELECT original AS origin, short, userID AS userkey FROM Urls WHERE UserID = $1`)
+	if err != nil {
+		return err
+	}
+
+	nstmtDeleteURL, err := s.DB.Preparex(`UPDATE Urls SET isDeleted = true WHERE short = $1 AND userID = $2`)
+	if err != nil {
+		return err
+	}
+
+	// deleteURL UPDATE Urls SET isDeleted = true WHERE short = $1 AND userID = $2
+
+	s.preparedStatements["SelectUser"] = nstmtSelectUser
+	s.preparedStatements["InsertUser"] = nstmtInsertUser
+	s.preparedStatements["SelectShortURL"] = nstmtSelectShortURL
+	s.preparedStatements["InsertURL"] = nstmtInsertURL
+	s.preparedStatements["SelectOriginalURL"] = nstmtSelectOriginalURL
+	s.preparedStatements["SelectUserURLHistory"] = nstmtSelectUserURLHistory
+	s.preparedStatements["DeleteURL"] = nstmtDeleteURL
+
 	return nil
 }

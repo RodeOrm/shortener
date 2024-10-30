@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/rodeorm/shortener/internal/core"
+	"github.com/rodeorm/shortener/internal/logger"
 )
 
 type memoryStorage struct {
@@ -14,7 +15,7 @@ type memoryStorage struct {
 }
 
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
-func (s memoryStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
+func (s *memoryStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
 	if !core.CheckURLValidity(URL) {
 		return nil, fmt.Errorf("невалидный URL: %s", URL)
 	}
@@ -37,29 +38,29 @@ func (s memoryStorage) InsertURL(URL, baseURL string, user *core.User) (*core.UR
 }
 
 // SelectOriginalURL принимает на вход короткий URL (относительный, без имени домена), извлекает из него ключ и возвращает оригинальный URL из хранилища
-func (s memoryStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
+func (s *memoryStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 	originalURL, isExist := s.shortToOriginal[shortURL]
 	return &core.URL{Key: shortURL, HasBeenShorted: isExist, OriginalURL: originalURL}, nil
 }
 
 // InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
-func (s memoryStorage) InsertUser(Key int) (*core.User, bool, error) {
+func (s *memoryStorage) InsertUser(Key int) (*core.User, error) {
 	if Key == 0 {
-		user := &core.User{Key: s.getNextFreeKey()}
+		user := &core.User{Key: s.getNextFreeKey(), WasUnathorized: true}
 		s.users[user.Key] = user
-		return user, true, nil
+		return user, nil
 	}
 	user, isExist := s.users[Key]
 	if !isExist {
-		user = &core.User{Key: Key}
+		user = &core.User{Key: Key, WasUnathorized: true}
 		s.users[Key] = user
-		return user, true, nil
+		return user, nil
 	}
-	return user, false, nil
+	return user, nil
 }
 
 // InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
-func (s memoryStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
+func (s *memoryStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
 
 	URLPair := &core.UserURLPair{UserKey: user.Key, Short: shorten, Origin: origin}
 
@@ -82,7 +83,8 @@ func (s memoryStorage) insertUserURLPair(shorten, origin string, user *core.User
 	return nil
 }
 
-func (s memoryStorage) SelectUserByKey(Key int) (*core.User, error) {
+// SelectUserByKey выбирает пользователя по ключу
+func (s *memoryStorage) SelectUserByKey(Key int) (*core.User, error) {
 	user, isExist := s.users[Key]
 	if !isExist {
 		return nil, fmt.Errorf("нет пользователя с ключом: %d", Key)
@@ -91,15 +93,15 @@ func (s memoryStorage) SelectUserByKey(Key int) (*core.User, error) {
 }
 
 // SelectUserURL возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-func (s memoryStorage) SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error) {
+func (s *memoryStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error) {
 	if s.userURLPairs[user.Key] == nil {
 		return nil, fmt.Errorf("нет истории")
 	}
-	return s.userURLPairs[user.Key], nil
+	return *s.userURLPairs[user.Key], nil
 }
 
 // getNextFreeKey возвращает ближайший свободный идентификатор пользователя
-func (s memoryStorage) getNextFreeKey() int {
+func (s *memoryStorage) getNextFreeKey() int {
 	var maxNumber int
 	for maxNumber = range s.users {
 		break
@@ -112,14 +114,8 @@ func (s memoryStorage) getNextFreeKey() int {
 	return maxNumber + 1
 }
 
-func (s memoryStorage) CloseConnection() {
-	fmt.Println("Закрыто")
-}
-
-func (s memoryStorage) DeleteURLs(URLs []core.URL) error {
-	return nil
-}
-
-func (s memoryStorage) PingDB() error {
+// DeleteURLs удаляет URL
+func (s *memoryStorage) DeleteURLs(URLs []core.URL) error {
+	logger.Log.Info("сделали вид, что удалили URL из памяти")
 	return nil
 }

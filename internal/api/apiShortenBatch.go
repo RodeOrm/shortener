@@ -9,8 +9,31 @@ import (
 	"github.com/rodeorm/shortener/internal/core"
 )
 
-func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
-	w, user, err := h.GetUserIdentity(w, r)
+// APIShortenBatchHandler обрабатывает методы POST для маршрута /api/shorten/batch, принимает в теле запроса множество URL для сокращения в формате:
+//
+/*
+[
+
+	{
+	    "correlation_id": "<строковый идентификатор>",
+	    "original_url": "<URL для сокращения>"
+	},
+	...
+
+]
+В качестве ответа возвращает данные в формате:
+[
+
+	{
+	    "correlation_id": "<строковый идентификатор из объекта запроса>",
+	    "short_url": "<результирующий сокращённый URL>"
+	},
+	...
+
+]
+*/
+func (h Server) APIShortenBatchHandler(w http.ResponseWriter, r *http.Request) {
+	w, user, err := h.getUserIdentity(w, r)
 
 	if err != nil {
 		handleError(w, err, "APIShortenBatch 1")
@@ -30,7 +53,7 @@ func (h Server) APIShortenBatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, value := range urlReq {
-		url, err := h.Storage.InsertURL(value.Origin, h.BaseURL, user)
+		url, err := h.URLStorage.InsertURL(value.Origin, h.BaseURL, user)
 		if err != nil {
 			handleError(w, err, "APIShortenBatch 3")
 			return

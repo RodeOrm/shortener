@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"strconv"
 
 	"github.com/rodeorm/shortener/internal/api"
 	"github.com/rodeorm/shortener/internal/logger"
@@ -16,10 +17,13 @@ func config() *api.Server {
 	// os.Setenv("SERVER_ADDRESS", "localhost:8080")
 	// os.Setenv("BASE_URL", "http://tiny")
 	// os.Setenv("FILE_STORAGE_PATH", "D:/file.txt")
-	// os.Setenv("DATABASE_DSN", "postgres://app:qqqQQQ123@localhost:5432/shortener?sslmode=disable")
+	os.Setenv("DATABASE_DSN", "") // postgres://app:qqqQQQ123@localhost:5432/shortener?sslmode=disable")
 
-	var serverAddress, baseURL, fileStoragePath, databaseConnectionString string
-	var workerCount, batchSize, queueSize int
+	var (
+		serverAddress, baseURL, fileStoragePath, databaseConnectionString string
+		workerCount, batchSize, queueSize, profileType                    int
+		err                                                               error
+	)
 
 	//Адрес запуска HTTP-сервера
 	if *a == "" {
@@ -67,15 +71,37 @@ func config() *api.Server {
 		queueSize = 10
 	}
 
-	logger.Initialize("info")
+	if *p == "" {
+		profileType = noneProfile
+	} else {
+		profileType, err = strconv.Atoi(*p)
+		if err != nil {
+			profileType = noneProfile
+		}
+	}
 
+	logger.Initialize("info")
 	server := &api.Server{
 		ServerAddress: serverAddress,
-		Storage:       repo.NewStorage(fileStoragePath, databaseConnectionString),
 		DeleteQueue:   api.NewQueue(queueSize),
 		BaseURL:       baseURL,
 		WorkerCount:   workerCount,
-		BatchSize:     batchSize}
+		BatchSize:     batchSize,
+		ProfileType:   profileType,
+	}
 
+	ms, fs, ps := repo.GetStorages(fileStoragePath, databaseConnectionString)
+	if ps != nil {
+		server.URLStorage = ps
+		server.UserStorage = ps
+		server.DBStorage = ps
+		return server
+	} else if fs != nil {
+		server.URLStorage = fs
+		server.UserStorage = fs
+		return server
+	}
+	server.URLStorage = ms
+	server.UserStorage = ms
 	return server
 }

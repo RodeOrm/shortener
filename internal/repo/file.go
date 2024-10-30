@@ -11,8 +11,15 @@ import (
 	"github.com/rodeorm/shortener/internal/core"
 )
 
+// fileStorage реализация хранилища в файле
+type fileStorage struct {
+	filePath     string
+	users        map[int]*core.User
+	userURLPairs map[int]*[]core.UserURLPair
+}
+
 // InsertShortURL принимает оригинальный URL, генерирует для него ключ и сохраняет соответствие оригинального URL и ключа (либо возвращает ранее созданный ключ)
-func (s fileStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
+func (s *fileStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL, error) {
 	url := core.URL{OriginalURL: core.GetClearURL(URL, "")}
 
 	if !core.CheckURLValidity(URL) {
@@ -51,7 +58,7 @@ func (s fileStorage) InsertURL(URL, baseURL string, user *core.User) (*core.URL,
 }
 
 // getShortlURLFromFile возвращает из файла сокращенный URL по оригинальному URL
-func (s fileStorage) getShortlURLFromFile(URL string) (string, bool, error) {
+func (s *fileStorage) getShortlURLFromFile(URL string) (string, bool, error) {
 
 	file, err := os.Open(s.filePath)
 	if err != nil {
@@ -72,7 +79,7 @@ func (s fileStorage) getShortlURLFromFile(URL string) (string, bool, error) {
 }
 
 // SelectOriginalURL принимает на вход короткий URL (относительный, без имени домена), извлекает из него ключ и возвращает оригинальный URL из хранилища
-func (s fileStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
+func (s *fileStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 
 	file, err := os.Open(s.filePath)
 	if err != nil {
@@ -94,23 +101,23 @@ func (s fileStorage) SelectOriginalURL(shortURL string) (*core.URL, error) {
 }
 
 // InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии
-func (s fileStorage) InsertUser(Key int) (*core.User, bool, error) {
+func (s *fileStorage) InsertUser(Key int) (*core.User, error) {
 	if Key <= 0 {
-		user := &core.User{Key: s.getNextFreeKey()}
+		user := &core.User{Key: s.getNextFreeKey(), WasUnathorized: true}
 		s.users[user.Key] = user
-		return user, true, nil
+		return user, nil
 	}
 	user, isExist := s.users[Key]
 	if !isExist {
-		user = &core.User{Key: Key}
+		user = &core.User{Key: Key, WasUnathorized: true}
 		s.users[Key] = user
-		return user, true, nil
+		return user, nil
 	}
-	return user, false, nil
+	return user, nil
 }
 
 // InsertUserURLPair cохраняет информацию о том, что пользователь сокращал URL, если такой информации ранее не было
-func (s fileStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
+func (s *fileStorage) insertUserURLPair(shorten, origin string, user *core.User) error {
 	URLPair := &core.UserURLPair{UserKey: user.Key, Short: shorten, Origin: origin}
 
 	userURLPairs, isExist := s.userURLPairs[URLPair.UserKey]
@@ -137,7 +144,8 @@ func (s fileStorage) insertUserURLPair(shorten, origin string, user *core.User) 
 	return nil
 }
 
-func (s fileStorage) SelectUserByKey(Key int) (*core.User, error) {
+// SelectUserByKey выдает пользователя по ключу
+func (s *fileStorage) SelectUserByKey(Key int) (*core.User, error) {
 	user, isExist := s.users[Key]
 	if !isExist {
 		return nil, fmt.Errorf("нет пользователя с ключом: %d", Key)
@@ -146,15 +154,15 @@ func (s fileStorage) SelectUserByKey(Key int) (*core.User, error) {
 }
 
 // SelectUserURL возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-func (s fileStorage) SelectUserURLHistory(user *core.User) (*[]core.UserURLPair, error) {
+func (s *fileStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error) {
 	if s.userURLPairs[user.Key] == nil {
 		return nil, fmt.Errorf("нет истории")
 	}
-	return s.userURLPairs[user.Key], nil
+	return *s.userURLPairs[user.Key], nil
 }
 
 // getNextFreeKey возвращает ближайший свободный идентификатор пользователя
-func (s fileStorage) getNextFreeKey() int {
+func (s *fileStorage) getNextFreeKey() int {
 	var maxNumber int
 	for maxNumber = range s.users {
 		break
@@ -167,37 +175,25 @@ func (s fileStorage) getNextFreeKey() int {
 	return maxNumber + 1
 }
 
-func (s fileStorage) CloseConnection() {
-	fmt.Println("Закрыто")
-}
-
-func (s fileStorage) DeleteURLs(URLs []core.URL) error {
+// DeleteURLs фиктивно удаляет URL
+func (s *fileStorage) DeleteURLs(URLs []core.URL) error {
 	return nil
 }
 
-func (s fileStorage) CheckFile(filePath string) error {
+// проверяет файл и создает новый или использует старый
+func сheckFile(filePath string) error {
 	fileInfo, err := os.Stat(filePath)
 
 	if errors.Is(err, os.ErrNotExist) {
 		newFile, err := os.Create(filePath)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 			return err
 		}
 		newFile.Close()
-		fmt.Println("Создан файл: ", newFile.Name())
+		log.Println("Создан файл: ", newFile.Name())
 		return nil
 	}
-	fmt.Println("Файл уже есть: ", fileInfo.Name())
+	log.Println("Файл уже есть: ", fileInfo.Name())
 	return nil
-}
-
-func (s fileStorage) PingDB() error {
-	return nil
-}
-
-type fileStorage struct {
-	filePath     string
-	users        map[int]*core.User
-	userURLPairs map[int]*[]core.UserURLPair
 }
