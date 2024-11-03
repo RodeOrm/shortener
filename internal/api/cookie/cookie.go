@@ -1,3 +1,4 @@
+// Package cookie предназначен для работы с куками
 package cookie
 
 import (

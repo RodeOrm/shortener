@@ -1,3 +1,4 @@
+// Package repo предназначен для реализации взаимодействия с хранилищами данных
 package repo
 
 import (
@@ -19,7 +20,7 @@ var (
 	oncePS sync.Once
 )
 
-// GetStorage определяет место для хранения данных
+// GetStorages определяет реализации для хранения данных
 func GetStorages(filePath, dbConnectionString string) (*memoryStorage, *fileStorage, *postgresStorage) {
 	logger.Log.Info("Init storage",
 		zap.String("Начали процесс выбора хранилища", filePath),

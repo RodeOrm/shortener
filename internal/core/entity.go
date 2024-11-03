@@ -1,3 +1,4 @@
+// Package core отражает предметную область приложения
 package core
 
 /****
@@ -32,13 +33,13 @@ type UserURLPair struct {
 	UserKey int    `json:"-"`                      // Уникальный идентификатор пользователя
 }
 
-// UrlWithCorrelationRequest - структура для сериализации URL в end-point api/shorten/batch
+// URLWithCorrelationRequest - структура для сериализации URL в end-point api/shorten/batch
 type URLWithCorrelationRequest struct {
 	CorID  string `json:"correlation_id,omitempty"` // Идентификатор сокращенного URL
 	Origin string `json:"original_url,omitempty"`   // Оригинальный URL
 }
 
-// UrlWithCorrelationResponse - структура для сериализации  множество URL в end-point api/shorten/batch
+// URLWithCorrelationResponse - структура для сериализации  множество URL в end-point api/shorten/batch
 type URLWithCorrelationResponse struct {
 	CorID string `json:"correlation_id,omitempty"` // Идентификатор сокращенного URL
 	Short string `json:"short_url,omitempty"`      // Оригинальный URL

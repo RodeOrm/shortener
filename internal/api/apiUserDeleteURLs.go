@@ -9,7 +9,7 @@ import (
 )
 
 /*
-Хендлер DELETE /api/user/urls, который в теле запроса принимает список идентификаторов сокращённых URL для асинхронного удаления. Запрос может быть таким:
+APIUserDeleteURLsHandler - это хэндлер для метода DELETE /api/user/urls, который в теле запроса принимает список идентификаторов сокращённых URL для асинхронного удаления. Запрос может быть таким:
 DELETE http://localhost:8080/api/user/urls
 Content-Type: application/json
 
