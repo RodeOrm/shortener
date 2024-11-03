@@ -33,11 +33,13 @@ type UserURLPair struct {
 	UserKey int    `json:"-"`                      // Уникальный идентификатор пользователя
 }
 
+
 // URLWithCorrelationRequest - структура для сериализации URL в end-point api/shorten/batch
 type URLWithCorrelationRequest struct {
 	CorID  string `json:"correlation_id,omitempty"` // Идентификатор сокращенного URL
 	Origin string `json:"original_url,omitempty"`   // Оригинальный URL
 }
+
 
 // URLWithCorrelationResponse - структура для сериализации  множество URL в end-point api/shorten/batch
 type URLWithCorrelationResponse struct {

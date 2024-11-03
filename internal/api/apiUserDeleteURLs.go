@@ -10,12 +10,8 @@ import (
 
 /*
 APIUserDeleteURLsHandler - это хэндлер для метода DELETE /api/user/urls, который в теле запроса принимает список идентификаторов сокращённых URL для асинхронного удаления. Запрос может быть таким:
-DELETE http://localhost:8080/api/user/urls
-Content-Type: application/json
 
-["6qxTVvsy", "RTfd56hn", "Jlfd67ds"]
-В случае успешного приёма запроса хендлер должен возвращать HTTP-статус 202 Accepted. Фактический результат удаления может происходить позже — оповещать пользователя об успешности или неуспешности не нужно.
-Успешно удалить URL может пользователь, его создавший.
+Хендлер DELETE /api/user/urls, который в теле запроса принимает список идентификаторов сокращённых URL для асинхронного удаления. Запрос может быть таким:
 */
 func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
 	w, user, err := h.getUserIdentity(w, r)

@@ -20,6 +20,7 @@ var (
 	oncePS sync.Once
 )
 
+
 // GetStorages определяет реализации для хранения данных
 func GetStorages(filePath, dbConnectionString string) (*memoryStorage, *fileStorage, *postgresStorage) {
 	logger.Log.Info("Init storage",
