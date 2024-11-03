@@ -63,8 +63,8 @@ func main() {
 	var checks []*analysis.Analyzer
 
 	checks = addStandardAnalyzers(checks)
-	checks = addStaticCheckAnalyzersSA(checks)
-	checks = addStaticCheckAnalyzersOther(checks)
+	checks = addStatisticCheckAnalyzersSA(checks)
+	checks = addStatisticCheckAnalyzersOther(checks)
 
 	checks = append(checks, osexitchecker.Analyzer)
 
@@ -75,8 +75,8 @@ func main() {
 	}
 }
 
-// addStaticCheckAnalyzers добавляет остальные анализаторы (кроме класса SA) пакета staticcheck.io
-func addStaticCheckAnalyzersOther(analyzers []*analysis.Analyzer) []*analysis.Analyzer {
+// addStatisticCheckAnalyzersOther добавляет остальные анализаторы (кроме класса SA) пакета staticcheck.io
+func addStatisticCheckAnalyzersOther(analyzers []*analysis.Analyzer) []*analysis.Analyzer {
 
 	for _, a := range staticcheck.Analyzers {
 		switch a.Analyzer.Name {
@@ -91,8 +91,8 @@ func addStaticCheckAnalyzersOther(analyzers []*analysis.Analyzer) []*analysis.An
 	return analyzers
 }
 
-// addStaticCheckAnalyzersSA добавляет все анализаторы класса SA пакета staticcheck.io
-func addStaticCheckAnalyzersSA(analyzers []*analysis.Analyzer) []*analysis.Analyzer {
+// addStatisticCheckAnalyzersSA добавляет все анализаторы класса SA пакета staticcheck.io
+func addStatisticCheckAnalyzersSA(analyzers []*analysis.Analyzer) []*analysis.Analyzer {
 
 	for _, a := range staticcheck.Analyzers {
 		if a.Analyzer.Name[0] == 'S' && a.Analyzer.Name[1] == 'A' {
