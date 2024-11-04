@@ -56,6 +56,39 @@ func TestGetURLsFromString(t *testing.T) {
 	}
 }
 
+func TestGetClearURL(t *testing.T) {
+
+	tests := []struct {
+		name  string
+		value string
+		want  string
+	}{
+
+		{
+			name:  "вся строки с большой буквы",
+			value: "HTTP://WWW.YANDEX.RU",
+			want:  "http://www.yandex.ru",
+		},
+		{
+			name:  "camelCase буквы",
+			value: "http://WWW.YANDEX.RU",
+			want:  "http://www.yandex.ru",
+		},
+		{
+			name:  "пустая строка",
+			value: "",
+			want:  "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetClearURL(tt.value, "")
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func BenchmarkGetURLsFromString(b *testing.B) {
 	type testInput struct {
 		urls string
@@ -92,4 +125,70 @@ func BenchmarkValidateURL(b *testing.B) {
 		}
 	})
 
+}
+
+func TestCheckURLValidity(t *testing.T) {
+
+	tests := []struct {
+		name  string
+		value string
+		want  bool
+	}{
+
+		{
+			name:  "вся строки с большой буквы",
+			value: "HTTP://WWW.YANDEX.RU",
+			want:  true,
+		},
+		{
+			name:  "camelCase буквы",
+			value: "http://WWW.YANDEX.RU",
+			want:  true,
+		},
+		{
+			name:  "пустая строка",
+			value: "",
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CheckURLValidity(tt.value)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestCheckURLValidityByRegExp(t *testing.T) {
+
+	tests := []struct {
+		name  string
+		value string
+		want  bool
+	}{
+
+		{
+			name:  "вся строки с большой буквы",
+			value: "HTTP://WWW.YANDEX.RU",
+			want:  true,
+		},
+		{
+			name:  "camelCase буквы",
+			value: "http://WWW.YANDEX.RU",
+			want:  true,
+		},
+		{
+			name:  "пустая строка",
+			value: "",
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CheckURLValidityByRegExp(GetClearURL(tt.value, ""))
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }

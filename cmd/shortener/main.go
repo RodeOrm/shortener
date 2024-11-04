@@ -15,7 +15,11 @@ import (
 
 func main() {
 
-	server := config()
+	server, err := config()
+	if err != nil {
+		panic(err)
+	}
+
 	profile(server.ProfileType)
 	api.ServerStart(server)
 }

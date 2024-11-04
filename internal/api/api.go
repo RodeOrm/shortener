@@ -2,6 +2,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/pprof"
 	"time"
@@ -40,6 +41,10 @@ type Server struct {
 
 // ServerStart запускает веб-сервер
 func ServerStart(s *Server) error {
+
+	if s.URLStorage == nil || s.UserStorage == nil {
+		return fmt.Errorf("не определены хранилища")
+	}
 
 	if s.DBStorage != nil {
 		defer s.DBStorage.Close()

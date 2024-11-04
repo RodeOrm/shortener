@@ -14,8 +14,11 @@ import (
 func TestGetUserKeyFromCookie(t *testing.T) {
 	validKey := strconv.Itoa(100)
 	invalidKey := "invalid"
-	validToken, _ := crypt.Encrypt(validKey)
-	invalidToken, _ := crypt.Encrypt(invalidKey)
+	validToken, err := crypt.Encrypt(validKey)
+	require.NoError(t, err)
+
+	invalidToken, err := crypt.Encrypt(invalidKey)
+	require.NoError(t, err)
 
 	tests := []struct {
 		cookie *http.Cookie
@@ -44,7 +47,6 @@ func TestGetUserKeyFromCookie(t *testing.T) {
 				"Accept-Language": {"en-us"},
 			}}
 			req.AddCookie(tt.cookie)
-
 			key, err := GetUserKeyFromCookie(&req)
 
 			if tt.err {
@@ -53,6 +55,25 @@ func TestGetUserKeyFromCookie(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.Equal(t, tt.Key, key)
+		})
+	}
+}
+
+func TestPutUserKeyToCookie(t *testing.T) {
+	validKey := strconv.Itoa(100)
+
+	tests := []struct {
+		name string
+		Key  string
+	}{
+		{name: "обработка валидных идентификаторов", Key: validKey},
+		{name: "обработка пустых идентификаторов"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cookie, err := PutUserKeyToCookie(tt.Key)
+			require.NoError(t, err)
+			require.NotNil(t, cookie)
 		})
 	}
 }
