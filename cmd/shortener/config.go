@@ -116,8 +116,7 @@ func configurate() (*api.Server, error) {
 		return &server, nil
 
 	} else if fs != nil {
-
-		server := builder.SetStorages(ps, ps, ps).
+		server := builder.SetStorages(fs, fs, nil).
 			SetDeleter(workerCount, batchSize, queueSize).
 			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled).
 			SetConfigFromFile(configName).
