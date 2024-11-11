@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 )
 
 // Типы профилирования приложения
@@ -13,7 +12,6 @@ const (
 )
 
 var a, b, c, config, f, d, w, s, q, p, bs *string
-var buildVersion, buildDate, buildCommit string
 
 func init() {
 	//флаг -a, отвечающий за адрес запуска HTTP-сервера (переменная SERVER_ADDRESS)
@@ -39,21 +37,5 @@ func init() {
 	//флаг -w, отвечающий за число воркеров для удаления
 	w = flag.String("w", "", "WORKER_COUNTS")
 
-	if buildVersion != "" {
-		fmt.Println("Build version: ", buildVersion)
-	} else {
-		fmt.Println("Build version: ", "N/A")
-	}
-
-	if buildDate != "" {
-		fmt.Println("Build date: ", buildDate)
-	} else {
-		fmt.Println("N/A")
-	}
-
-	if buildCommit != "" {
-		fmt.Println("Build commit: ", buildCommit)
-	} else {
-		fmt.Println("N/A")
-	}
+	printBuildInfo()
 }
