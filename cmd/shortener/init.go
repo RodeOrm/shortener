@@ -4,13 +4,6 @@ import (
 	"flag"
 )
 
-// Типы профилирования приложения
-const (
-	noneProfile   = iota // Нет профилирования
-	baseProfile          // Профилирование в файл base
-	resultProfile        // Профилирование в файл result
-)
-
 var a, b, c, config, f, d, w, s, q, p, bs *string
 
 func init() {
