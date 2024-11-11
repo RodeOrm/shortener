@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 )
 
 // Типы профилирования приложения
@@ -12,6 +13,7 @@ const (
 )
 
 var a, b, f, d, w, s, q, p *string
+var buildVersion, buildDate, buildCommit string
 
 func init() {
 	//флаг -a, отвечающий за адрес запуска HTTP-сервера (переменная SERVER_ADDRESS)
@@ -30,4 +32,22 @@ func init() {
 	q = flag.String("q", "", "DELETE_QUEUE_SIZE")
 	//флаг -p, отвечающий за тип профилирования
 	p = flag.String("p", "", "PROFILE_TYPE")
+
+	if buildVersion != "" {
+		fmt.Println("Build version: ", buildVersion)
+	} else {
+		fmt.Println("N/A")
+	}
+
+	if buildDate != "" {
+		fmt.Println("Build date: ", buildDate)
+	} else {
+		fmt.Println("N/A")
+	}
+
+	if buildCommit != "" {
+		fmt.Println("Build commit: ", buildCommit)
+	} else {
+		fmt.Println("N/A")
+	}
 }

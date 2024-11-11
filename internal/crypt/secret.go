@@ -1,3 +1,4 @@
+// Package crypt отражает работу с криптографией в проекте
 package crypt
 
 import (

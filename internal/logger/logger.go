@@ -1,3 +1,4 @@
+// Package logger отражает работу с логгированием в проекте
 package logger
 
 import (

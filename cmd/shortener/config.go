@@ -11,13 +11,13 @@ import (
 )
 
 // config выполняет первоначальную конфигурацию
-func config() *api.Server {
+func config() (*api.Server, error) {
 	flag.Parse()
 
 	// os.Setenv("SERVER_ADDRESS", "localhost:8080")
 	// os.Setenv("BASE_URL", "http://tiny")
 	// os.Setenv("FILE_STORAGE_PATH", "D:/file.txt")
-	os.Setenv("DATABASE_DSN", "") // postgres://app:qqqQQQ123@localhost:5432/shortener?sslmode=disable")
+	// os.Setenv("DATABASE_DSN", "") // postgres://app:qqqQQQ123@localhost:5432/shortener?sslmode=disable")
 
 	var (
 		serverAddress, baseURL, fileStoragePath, databaseConnectionString string
@@ -95,13 +95,13 @@ func config() *api.Server {
 		server.URLStorage = ps
 		server.UserStorage = ps
 		server.DBStorage = ps
-		return server
+		return server, nil
 	} else if fs != nil {
 		server.URLStorage = fs
 		server.UserStorage = fs
-		return server
+		return server, nil
 	}
 	server.URLStorage = ms
 	server.UserStorage = ms
-	return server
+	return server, nil
 }

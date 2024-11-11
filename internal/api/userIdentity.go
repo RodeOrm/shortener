@@ -27,6 +27,10 @@ func (h Server) getUserIdentity(w http.ResponseWriter, r *http.Request) (http.Re
 	if err != nil {
 		handleError(w, err, "GetUserIdentity")
 	}
-	http.SetCookie(w, cookie.PutUserKeyToCookie(fmt.Sprint(user.Key)))
+	cookie, err := cookie.PutUserKeyToCookie(fmt.Sprint(user.Key))
+	if err != nil {
+		return w, nil, err
+	}
+	http.SetCookie(w, cookie)
 	return w, user, nil
 }

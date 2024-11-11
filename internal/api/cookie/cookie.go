@@ -1,3 +1,4 @@
+// Package cookie предназначен для работы с куками
 package cookie
 
 import (
@@ -32,10 +33,10 @@ func GetUserKeyFromCookie(r *http.Request) (string, error) {
 }
 
 // PutUserKeyToCookie помещает идентификатор пользователя в  куки "токен"
-func PutUserKeyToCookie(Key string) *http.Cookie {
+func PutUserKeyToCookie(Key string) (*http.Cookie, error) {
 	val, err := crypt.Encrypt(Key)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	cookie := &http.Cookie{
@@ -43,5 +44,5 @@ func PutUserKeyToCookie(Key string) *http.Cookie {
 		Value:  val,
 		MaxAge: 10000,
 	}
-	return cookie
+	return cookie, nil
 }

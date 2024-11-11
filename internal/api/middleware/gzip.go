@@ -1,3 +1,4 @@
+// Package middleware предназначен для работы с middleware
 package middleware
 
 import (
@@ -9,7 +10,7 @@ import (
 	"strings"
 )
 
-// WithLog - middleware для сжатия/распаковки
+// WithZip - middleware для сжатия/распаковки
 func WithZip(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
