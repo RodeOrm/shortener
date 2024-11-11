@@ -79,7 +79,7 @@ func ServerStart(s *Server) error {
 		go w.delete(s.idleConnsClosed)
 	}
 
-	if s.Config.IsGivenHTTPS {
+	if s.Config.EnableHTTPS {
 		m := newTLSManager(s.Config.ServerAddress)
 		s.srv.TLSConfig = m.TLSConfig()
 		err := s.srv.ListenAndServeTLS("", "")
@@ -87,7 +87,7 @@ func ServerStart(s *Server) error {
 		<-s.idleConnsClosed
 		// получили оповещение о завершении
 		logger.Log.Info("Server Shutdowned",
-			zap.String("Server Shutdowned gracefully", "Сервер с https"),
+			zap.String("Server Shutdowned gracefully", s.ServerAddress),
 		)
 
 		if err != nil {
