@@ -39,10 +39,12 @@ func init() {
 	//флаг -w, отвечающий за число воркеров для удаления
 	w = flag.String("w", "", "WORKER_COUNTS")
 
+
 	if buildVersion != "" {
 		fmt.Println("Build version: ", buildVersion)
 	} else {
 		fmt.Println("Build version: ", "N/A")
+		fmt.Println("N/A")
 	}
 
 	if buildDate != "" {
