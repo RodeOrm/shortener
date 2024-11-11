@@ -132,7 +132,8 @@ func ExampleServer_APIUserDeleteURLsHandler() {
 	defer srv.Close()
 
 	worker := NewWorker(1, s.DeleteQueue, storage, 1)
-	go worker.delete()
+	close := make(chan struct{})
+	go worker.delete(close)
 
 	useCases := []struct {
 		name         string

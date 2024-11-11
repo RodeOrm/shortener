@@ -29,7 +29,8 @@ func TestAPIUserDeleteURLs(t *testing.T) {
 	defer srv.Close()
 
 	worker := NewWorker(1, s.DeleteQueue, storage, 1)
-	go worker.delete()
+	close := make(chan struct{})
+	go worker.delete(close)
 
 	testCases := []struct {
 		name         string

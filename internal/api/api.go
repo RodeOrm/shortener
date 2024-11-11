@@ -76,7 +76,7 @@ func ServerStart(s *Server) error {
 
 	for i := 0; i < s.WorkerCount; i++ {
 		w := NewWorker(i, s.DeleteQueue, s.URLStorage, s.BatchSize)
-		go w.delete()
+		go w.delete(s.idleConnsClosed)
 	}
 
 	if s.Config.IsGivenHTTPS {

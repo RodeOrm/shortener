@@ -21,7 +21,8 @@ func TestAsync(t *testing.T) {
 
 	w := NewWorker(1, q, storage, 1)
 	require.NotNil(t, w)
-	go w.delete()
+	close := make(chan struct{})
+	go w.delete(close)
 
 	url := []core.URL{
 		{OriginalURL: "http://yandex.ru"},

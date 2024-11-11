@@ -71,20 +71,27 @@ func (q *Queue) popWait(n int) []core.URL {
 }
 
 // delete основной рабочий метод Worker, удаляющего url из очереди
-func (w *Worker) delete() {
+func (w *Worker) delete(exit chan struct{}) {
 	logger.Log.Info(fmt.Sprintf("воркер #%d стартовал", w.id))
 
-	for range w.queue.ch {
-		urls := w.queue.popWait(w.batchSize)
+	for {
+		select {
+		case _, ok := <-exit:
+			if !ok {
+				return
+			}
+		default:
+			urls := w.queue.popWait(w.batchSize)
 
-		if len(urls) == 0 {
-			continue
+			if len(urls) == 0 {
+				continue
+			}
+			err := w.urlStorage.DeleteURLs(urls)
+			if err != nil {
+				logger.Log.Error(fmt.Sprintf("ошибка при работе воркера %v стартовал", err))
+				continue
+			}
+			logger.Log.Info(fmt.Sprintf("воркер #%d удалил пачку урл %v", w.id, urls))
 		}
-		err := w.urlStorage.DeleteURLs(urls)
-		if err != nil {
-			logger.Log.Error(fmt.Sprintf("ошибка при работе воркера %v стартовал", err))
-			continue
-		}
-		logger.Log.Info(fmt.Sprintf("воркер #%d удалил пачку урл %v", w.id, urls))
 	}
 }
