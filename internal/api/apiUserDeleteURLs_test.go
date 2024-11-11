@@ -22,7 +22,7 @@ func TestAPIUserDeleteURLs(t *testing.T) {
 	storage.EXPECT().InsertUser(gomock.Any()).Return(&core.User{Key: 1000, WasUnathorized: false}, nil).AnyTimes()
 	storage.EXPECT().DeleteURLs(gomock.Any()).Return(nil).AnyTimes()
 
-	s := Server{DBStorage: storage, UserStorage: storage, URLStorage: storage, DeleteQueue: &Queue{ch: make(chan *core.URL)}}
+	s := Server{DBStorage: storage, UserStorage: storage, URLStorage: storage, Deleter: Deleter{DeleteQueue: &Queue{ch: make(chan *core.URL)}}}
 
 	handler := http.HandlerFunc(s.APIUserDeleteURLsHandler)
 	srv := httptest.NewServer(handler)

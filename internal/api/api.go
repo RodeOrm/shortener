@@ -12,31 +12,16 @@ import (
 	"github.com/rodeorm/shortener/internal/api/middleware"
 )
 
-// Server абстракция, отражающая веб-сервер и его характеристики
+// Server веб-сервер и его характеристики
 type Server struct {
-	//Количество воркеров, асинхронно удаляющих url
-	WorkerCount int
-	//Размер пачки для удаления
-	BatchSize int
-	//Тип профилирования (если необходимо)
-	ProfileType int
+	ProfileType int // Тип профилирования (если необходимо)
 
-	//Адрес запуска веб-сервера
-	ServerAddress string
-	//Базовый URL для сокращенных адресов
-	BaseURL string
-	//Connection string для БД
-	DatabaseConnectionString string
+	URLStorage  URLStorager  // Хранилище данных для URL
+	UserStorage UserStorager // Хранилище данных для URL
+	DBStorage   DBStorager   // Хранилище данных для DB
 
-	//Хранилище данных для URL
-	URLStorage URLStorager
-	// Хранилище данных для URL
-	UserStorage UserStorager
-	// Хранилище данных для DB
-	DBStorage DBStorager
-
-	//Очередь удаления
-	DeleteQueue *Queue
+	Config
+	Deleter
 }
 
 // ServerStart запускает веб-сервер
@@ -52,6 +37,7 @@ func ServerStart(s *Server) error {
 	}
 
 	r := mux.NewRouter()
+
 	r.HandleFunc("/", s.RootHandler).Methods(http.MethodPost)
 	r.HandleFunc("/ping", s.PingDBHandler).Methods(http.MethodGet)
 	r.HandleFunc("/{URL}", s.RootURLHandler).Methods(http.MethodGet)
@@ -83,9 +69,19 @@ func ServerStart(s *Server) error {
 		go w.delete()
 	}
 
-	err := srv.ListenAndServe()
-	if err != nil {
-		return err
+	if s.Config.EnableHTTPS {
+		m := newTLSManager(s.Config.ServerAddress)
+		srv.TLSConfig = m.TLSConfig()
+		err := srv.ListenAndServeTLS("", "")
+		if err != nil {
+			return err
+		}
+	} else {
+		err := srv.ListenAndServe()
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }

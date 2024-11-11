@@ -27,7 +27,7 @@ func TestAPIUserGetURLs(t *testing.T) {
 	storage.EXPECT().InsertUser(gomock.Any()).Return(user, nil).AnyTimes()
 	storage.EXPECT().SelectUserURLHistory(user).Return(userURLs, nil)
 
-	s := Server{URLStorage: storage, UserStorage: storage, DBStorage: storage, BaseURL: "http:tiny.com"}
+	s := Server{URLStorage: storage, UserStorage: storage, DBStorage: storage, Config: Config{BaseURL: "http:tiny.com"}}
 
 	handler := http.HandlerFunc(s.APIUserGetURLsHandler)
 	srv := httptest.NewServer(handler)

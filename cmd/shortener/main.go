@@ -15,7 +15,7 @@ import (
 
 func main() {
 
-	server, err := config()
+	server, err := configurate()
 	if err != nil {
 		panic(err)
 	}
