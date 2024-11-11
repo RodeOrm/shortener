@@ -2,18 +2,26 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 
 	"github.com/rodeorm/shortener/internal/api/middleware"
+	"github.com/rodeorm/shortener/internal/logger"
 )
 
 // Server веб-сервер и его характеристики
 type Server struct {
+	srv             *http.Server  // Сервер
+	idleConnsClosed chan struct{} // Уведомление о завершении работы
+
 	ProfileType int // Тип профилирования (если необходимо)
 
 	URLStorage  URLStorager  // Хранилище данных для URL
@@ -57,12 +65,14 @@ func ServerStart(s *Server) error {
 	pprofRouter.HandleFunc("/symbol", pprof.Symbol)
 	pprofRouter.HandleFunc("/trace", pprof.Trace)
 
-	srv := &http.Server{
+	s.srv = &http.Server{
 		Handler:      r,
 		Addr:         s.ServerAddress,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+
+	s.gracefulShutDown()
 
 	for i := 0; i < s.WorkerCount; i++ {
 		w := NewWorker(i, s.DeleteQueue, s.URLStorage, s.BatchSize)
@@ -71,17 +81,64 @@ func ServerStart(s *Server) error {
 
 	if s.Config.IsGivenHTTPS {
 		m := newTLSManager(s.Config.ServerAddress)
-		srv.TLSConfig = m.TLSConfig()
-		err := srv.ListenAndServeTLS("", "")
+		s.srv.TLSConfig = m.TLSConfig()
+		err := s.srv.ListenAndServeTLS("", "")
+		// ждём завершения процедуры graceful shutdown
+		<-s.idleConnsClosed
+		// получили оповещение о завершении
+		logger.Log.Info("Server Shutdowned",
+			zap.String("Server Shutdowned gracefully", "Сервер с https"),
+		)
+
 		if err != nil {
 			return err
 		}
 	} else {
-		err := srv.ListenAndServe()
+		err := s.srv.ListenAndServe()
+		// ждём завершения процедуры graceful shutdown
+		<-s.idleConnsClosed
+		// получили оповещение о завершении
+		// например закрыть соединение с базой данных,
+		// закрыть открытые файлы
+		logger.Log.Info("Server Shutdowned",
+			zap.String("Завершили изящное выключение", s.ServerAddress),
+		)
+
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (h *Server) gracefulShutDown() {
+	// через этот канал сообщим основному потоку, что соединения закрыты
+	h.idleConnsClosed = make(chan struct{})
+	// канал для перенаправления прерываний
+	// поскольку нужно отловить всего одно прерывание,
+	// ёмкости 1 для канала будет достаточно
+	sigint := make(chan os.Signal, 1)
+	// регистрируем перенаправление прерываний
+	signal.Notify(sigint, os.Interrupt)
+	// запускаем горутину обработки пойманных прерываний
+	go func() {
+		// читаем из канала прерываний
+		// поскольку нужно прочитать только одно прерывание,
+		// можно обойтись без цикла
+		<-sigint
+		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
+		if err := h.srv.Shutdown(context.Background()); err != nil {
+			// ошибки закрытия Listener
+			logger.Log.Error("Server Shutdowned",
+				zap.String("Ошибка при изящном выключении", "Сервер без https"),
+			)
+		}
+		// сообщаем основному потоку,
+		// что все сетевые соединения обработаны и закрыты
+		logger.Log.Info("Server Shutdown",
+			zap.String("Начали изящное выключение", h.ServerAddress),
+		)
+		close(h.idleConnsClosed)
+	}()
 }

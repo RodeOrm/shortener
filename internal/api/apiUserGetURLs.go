@@ -7,7 +7,7 @@ import (
 )
 
 // APIUserGetURLsHandler возвращает пользователю все когда-либо сокращённые им URL в формате JSON
-func (h Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Server) APIUserGetURLsHandler(w http.ResponseWriter, r *http.Request) {
 	w, user, err := h.getUserIdentity(w, r)
 
 	if user.WasUnathorized {

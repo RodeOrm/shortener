@@ -74,7 +74,7 @@ func (q *Queue) popWait(n int) []core.URL {
 func (w *Worker) delete() {
 	logger.Log.Info(fmt.Sprintf("воркер #%d стартовал", w.id))
 
-	for {
+	for range w.queue.ch {
 		urls := w.queue.popWait(w.batchSize)
 
 		if len(urls) == 0 {
