@@ -69,7 +69,7 @@ func ServerStart(s *Server) error {
 		go w.delete()
 	}
 
-	if s.Config.EnableHTTPS {
+	if s.Config.IsGivenHTTPS {
 		m := newTLSManager(s.Config.ServerAddress)
 		srv.TLSConfig = m.TLSConfig()
 		err := srv.ListenAndServeTLS("", "")

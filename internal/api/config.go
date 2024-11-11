@@ -14,7 +14,7 @@ type Config struct {
 	FileStoragePath string `json:"file_storage_path,omitempty"` // "file_storage_path": "/path/to/file.db",
 	DatabaseDSN     string `json:"database_dsn,omitempty"`      //  "database_dsn": "",
 	EnableHTTPS     bool   `json:"enable_https,omitempty"`      // "enable_https": true
-	NotGivenHTTPS   bool
+	IsGivenHTTPS    bool   // Для случаев, когда значение не представлено
 }
 
 // Deleter конфигурация сервера для удаления
@@ -62,7 +62,7 @@ func (s ServerBuilder) SetConfigFromFile(configName string) ServerBuilder {
 		s.server.Config.ServerAddress = cfg.ServerAddress
 	}
 
-	if s.server.Config.EnableHTTPS {
+	if !s.server.Config.IsGivenHTTPS {
 		s.server.Config.EnableHTTPS = cfg.EnableHTTPS
 	}
 
@@ -76,12 +76,14 @@ func (s ServerBuilder) SetConfig(sa, bu, fsp, dn, eh string) ServerBuilder {
 		FileStoragePath: fsp,
 		DatabaseDSN:     dn,
 	}
+
 	enableHTTPS, err := strconv.ParseBool(eh)
 	if err != nil {
-		s.server.Config.NotGivenHTTPS = false
+		s.server.Config.IsGivenHTTPS = false
 		return s
 	}
 	s.server.EnableHTTPS = enableHTTPS
+	s.server.IsGivenHTTPS = true
 	return s
 }
 
