@@ -8,6 +8,7 @@ import (
 	"net/http/pprof"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -15,6 +16,12 @@ import (
 
 	"github.com/rodeorm/shortener/internal/api/middleware"
 	"github.com/rodeorm/shortener/internal/logger"
+)
+
+const (
+	serverReadTimeout  = 15 * time.Second
+	serverWriteTimeout = 15 * time.Second
+	shutdownTimeout    = 30 * time.Second
 )
 
 // Server веб-сервер и его характеристики
@@ -121,14 +128,21 @@ func (h *Server) gracefulShutDown() {
 	sigint := make(chan os.Signal, 1)
 	// регистрируем перенаправление прерываний
 	signal.Notify(sigint, os.Interrupt)
+	signal.Notify(sigint, syscall.SIGTERM)
+	signal.Notify(sigint, syscall.SIGQUIT)
 	// запускаем горутину обработки пойманных прерываний
 	go func() {
 		// читаем из канала прерываний
 		// поскольку нужно прочитать только одно прерывание,
 		// можно обойтись без цикла
 		<-sigint
+
+		// создаем контекст с таймаутом
+		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+
 		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
-		if err := h.srv.Shutdown(context.Background()); err != nil {
+		if err := h.srv.Shutdown(ctx); err != nil {
 			// ошибки закрытия Listener
 			logger.Log.Error("Server Shutdowned",
 				zap.String("Ошибка при изящном выключении", "Сервер без https"),
