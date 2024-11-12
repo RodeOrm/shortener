@@ -32,7 +32,7 @@ import (
 
 ]
 */
-func (h Server) APIShortenBatchHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Server) APIShortenBatchHandler(w http.ResponseWriter, r *http.Request) {
 	w, user, err := h.getUserIdentity(w, r)
 
 	if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // config выполняет первоначальную конфигурацию
-func config() (*api.Server, error) {
+func configurate() (*api.Server, error) {
 	flag.Parse()
 
 	// os.Setenv("SERVER_ADDRESS", "localhost:8080")
@@ -20,10 +21,11 @@ func config() (*api.Server, error) {
 	// os.Setenv("DATABASE_DSN", "") // postgres://app:qqqQQQ123@localhost:5432/shortener?sslmode=disable")
 
 	var (
-		serverAddress, baseURL, fileStoragePath, databaseConnectionString string
-		workerCount, batchSize, queueSize, profileType                    int
-		err                                                               error
+		serverAddress, baseURL, fileStoragePath, databaseConnectionString, configName, httpsEnabled string
+		workerCount, batchSize, queueSize, profileType                                              int
+		err                                                                                         error
 	)
+	logger.Initialize("info")
 
 	//Адрес запуска HTTP-сервера
 	if *a == "" {
@@ -45,11 +47,13 @@ func config() (*api.Server, error) {
 		baseURL = *b
 	}
 
-	//Путь до файла
-	if *f == "" {
-		fileStoragePath = os.Getenv("FILE_STORAGE_PATH")
+	//Имя файла конфигурации должно задаваться через флаг -c/-config или переменную окружения CONFIG
+	if *c != "" {
+		configName = *c
+	} else if *config == "" {
+		configName = *config
 	} else {
-		fileStoragePath = *f
+		configName = os.Getenv("CONFIG")
 	}
 
 	//Строка подключения к БД
@@ -59,11 +63,20 @@ func config() (*api.Server, error) {
 		databaseConnectionString = *d
 	}
 
+	fmt.Println(configName)
+
+	//Путь до файла
+	if *f == "" {
+		fileStoragePath = os.Getenv("FILE_STORAGE_PATH")
+	} else {
+		fileStoragePath = *f
+	}
+
 	if *w == "" {
 		workerCount = 2
 	}
 
-	if *s == "" {
+	if *bs == "" {
 		batchSize = 3
 	}
 
@@ -80,28 +93,44 @@ func config() (*api.Server, error) {
 		}
 	}
 
-	logger.Initialize("info")
-	server := &api.Server{
-		ServerAddress: serverAddress,
-		DeleteQueue:   api.NewQueue(queueSize),
-		BaseURL:       baseURL,
-		WorkerCount:   workerCount,
-		BatchSize:     batchSize,
-		ProfileType:   profileType,
+	/*
+		При передаче флага -s или переменной окружения ENABLE_HTTPS запускайте сервер с помощью метода http.ListenAndServeTLS или tls.Listen.
+	*/
+	if *s == "" {
+		httpsEnabled = os.Getenv("ENABLE_HTTPS")
+	} else {
+		httpsEnabled = *s
 	}
 
 	ms, fs, ps := repo.GetStorages(fileStoragePath, databaseConnectionString)
+	builder := &api.ServerBuilder{}
+
 	if ps != nil {
-		server.URLStorage = ps
-		server.UserStorage = ps
-		server.DBStorage = ps
-		return server, nil
+		server := builder.SetStorages(ps, ps, ps).
+			SetDeleter(workerCount, batchSize, queueSize).
+			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled).
+			SetConfigFromFile(configName).
+			SetProfileType(profileType).
+			Build()
+
+		return &server, nil
+
 	} else if fs != nil {
-		server.URLStorage = fs
-		server.UserStorage = fs
-		return server, nil
+		server := builder.SetStorages(fs, fs, nil).
+			SetDeleter(workerCount, batchSize, queueSize).
+			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled).
+			SetConfigFromFile(configName).
+			SetProfileType(profileType).
+			Build()
+
+		return &server, nil
 	}
-	server.URLStorage = ms
-	server.UserStorage = ms
-	return server, nil
+	server := builder.SetStorages(ms, ms, nil).
+		SetDeleter(workerCount, batchSize, queueSize).
+		SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled).
+		SetConfigFromFile(configName).
+		SetProfileType(profileType).
+		Build()
+
+	return &server, nil
 }

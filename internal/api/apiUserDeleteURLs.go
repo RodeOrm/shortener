@@ -13,7 +13,7 @@ APIUserDeleteURLsHandler - это хэндлер для метода DELETE /api
 
 Хендлер DELETE /api/user/urls, который в теле запроса принимает список идентификаторов сокращённых URL для асинхронного удаления. Запрос может быть таким:
 */
-func (h Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Server) APIUserDeleteURLsHandler(w http.ResponseWriter, r *http.Request) {
 	w, user, err := h.getUserIdentity(w, r)
 	if user.WasUnathorized {
 		w.WriteHeader(http.StatusUnauthorized)

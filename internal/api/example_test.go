@@ -29,7 +29,7 @@ func ExampleServer_APIShortenHandler() {
 		{
 			//Нужно принимать и возвращать JSON
 			name:    "Проверка обработки корректных запросов: POST (json)",
-			server:  Server{ServerAddress: "http://localhost:8080", URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
+			server:  Server{Config: Config{ServerConfig: ServerConfig{ServerAddress: "http://localhost:8080"}}, URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
 			body:    `{"url":"http://www.yandex.ru"}`,
 			request: "http://localhost:8080/api/shorten",
 			want:    want{statusCode: 201, contentType: "json"},
@@ -37,7 +37,7 @@ func ExampleServer_APIShortenHandler() {
 		{
 			//Нужно принимать и возвращать JSON
 			name:    "Проверка обработки некорректных запросов: POST (json)",
-			server:  Server{ServerAddress: "http://localhost:8080", URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
+			server:  Server{Config: Config{ServerConfig: ServerConfig{ServerAddress: "http://localhost:8080"}}, URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
 			body:    ``,
 			request: "http://localhost:8080/api/shorten",
 			want:    want{statusCode: 400},
@@ -125,14 +125,15 @@ func ExampleServer_APIUserDeleteURLsHandler() {
 	storage.EXPECT().InsertUser(gomock.Any()).Return(&core.User{Key: 1000, WasUnathorized: false}, nil).AnyTimes()
 	storage.EXPECT().DeleteURLs(gomock.Any()).Return(nil).AnyTimes()
 
-	s := Server{UserStorage: storage, URLStorage: storage, DBStorage: storage, DeleteQueue: &Queue{ch: make(chan *core.URL)}}
+	s := Server{UserStorage: storage, URLStorage: storage, DBStorage: storage, Deleter: Deleter{DeleteQueue: NewQueue(3)}}
 
 	handler := http.HandlerFunc(s.APIUserDeleteURLsHandler)
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 
 	worker := NewWorker(1, s.DeleteQueue, storage, 1)
-	go worker.delete()
+	close := make(chan struct{})
+	go worker.delete(close)
 
 	useCases := []struct {
 		name         string
@@ -175,7 +176,7 @@ func ExampleServer_APIUserGetURLsHandler() {
 	storage.EXPECT().InsertUser(gomock.Any()).Return(user, nil).AnyTimes()
 	storage.EXPECT().SelectUserURLHistory(user).Return(userURLs, nil)
 
-	s := Server{UserStorage: storage, URLStorage: storage, DBStorage: storage, BaseURL: "http:tiny.com"}
+	s := Server{UserStorage: storage, URLStorage: storage, DBStorage: storage, Config: Config{ServerConfig: ServerConfig{BaseURL: "http:tiny.com"}}}
 
 	handler := http.HandlerFunc(s.APIUserGetURLsHandler)
 	srv := httptest.NewServer(handler)

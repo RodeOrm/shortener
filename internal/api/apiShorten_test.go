@@ -27,7 +27,7 @@ func TestAPIShorten(t *testing.T) {
 		{
 			//Нужно принимать и возвращать JSON
 			name:    "Проверка обработки корректных запросов: POST (json)",
-			server:  Server{ServerAddress: "http://localhost:8080", URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
+			server:  Server{Config: Config{ServerConfig: ServerConfig{ServerAddress: "http://localhost:8080"}}, URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
 			body:    `{"url":"http://www.yandex.ru"}`,
 			request: "http://localhost:8080/api/shorten",
 			want:    want{statusCode: 201, contentType: "json"},
@@ -35,7 +35,7 @@ func TestAPIShorten(t *testing.T) {
 		{
 			//Нужно принимать и возвращать JSON
 			name:    "Проверка обработки некорректных запросов: POST (json)",
-			server:  Server{ServerAddress: "http://localhost:8080", URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
+			server:  Server{Config: Config{ServerConfig: ServerConfig{ServerAddress: "http://localhost:8080"}}, URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
 			body:    ``,
 			request: "http://localhost:8080/api/shorten",
 			want:    want{statusCode: 400},

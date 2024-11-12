@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/labstack/gommon/log"
 	"github.com/rodeorm/shortener/internal/api"
 )
 
@@ -15,9 +16,9 @@ import (
 
 func main() {
 
-	server, err := config()
+	server, err := configurate()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	profile(server.ProfileType)

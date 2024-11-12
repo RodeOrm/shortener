@@ -18,7 +18,7 @@ func TestConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server, err := config()
+			server, err := configurate()
 			require.NoError(t, err)
 			err = profile(server.ProfileType)
 			require.NoError(t, err)
