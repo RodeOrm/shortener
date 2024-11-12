@@ -15,16 +15,19 @@ type Config struct {
 	TLSConfig
 }
 
+// ServerConfig основные параметры сервера
 type ServerConfig struct {
 	ServerAddress   string `json:"server_address,omitempty"`    // "server_address": "localhost:8080"
 	BaseURL         string `json:"base_url,omitempty"`          // "base_url": "http://localhost"
 	FileStoragePath string `json:"file_storage_path,omitempty"` // "file_storage_path": "/path/to/file.db"
 }
 
+// DatabaseConfig параметры, связанные с СУБД
 type DatabaseConfig struct {
 	DatabaseDSN string `json:"database_dsn,omitempty"` //  "database_dsn": ""
 }
 
+// TLSConfig паарметры, связаные с https
 type TLSConfig struct {
 	EnableHTTPS  bool `json:"enable_https,omitempty"` // "enable_https": true
 	IsGivenHTTPS bool // Для случаев, когда значение не представлено
