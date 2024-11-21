@@ -15,15 +15,10 @@ import (
 func configurate() (*api.Server, error) {
 	flag.Parse()
 
-	// os.Setenv("SERVER_ADDRESS", "localhost:8080")
-	// os.Setenv("BASE_URL", "http://tiny")
-	// os.Setenv("FILE_STORAGE_PATH", "D:/file.txt")
-	// os.Setenv("DATABASE_DSN", "") // postgres://app:qqqQQQ123@localhost:5432/shortener?sslmode=disable")
-
 	var (
-		serverAddress, baseURL, fileStoragePath, databaseConnectionString, configName, httpsEnabled string
-		workerCount, batchSize, queueSize, profileType                                              int
-		err                                                                                         error
+		serverAddress, baseURL, fileStoragePath, databaseConnectionString, configName, httpsEnabled, trustedSubnet string
+		workerCount, batchSize, queueSize, profileType                                                             int
+		err                                                                                                        error
 	)
 	logger.Initialize("info")
 
@@ -102,13 +97,18 @@ func configurate() (*api.Server, error) {
 		httpsEnabled = *s
 	}
 
+	/**/
+	if *t == "" {
+		trustedSubnet = os.Getenv("TRUSTED_SUBNET")
+	}
+
 	ms, fs, ps := repo.GetStorages(fileStoragePath, databaseConnectionString)
 	builder := &api.ServerBuilder{}
 
 	if ps != nil {
-		server := builder.SetStorages(ps, ps, ps).
+		server := builder.SetStorages(ps, ps, ps, ps).
 			SetDeleter(workerCount, batchSize, queueSize).
-			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled).
+			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled, trustedSubnet).
 			SetConfigFromFile(configName).
 			SetProfileType(profileType).
 			Build()
@@ -116,18 +116,18 @@ func configurate() (*api.Server, error) {
 		return &server, nil
 
 	} else if fs != nil {
-		server := builder.SetStorages(fs, fs, nil).
+		server := builder.SetStorages(fs, fs, nil, fs).
 			SetDeleter(workerCount, batchSize, queueSize).
-			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled).
+			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled, trustedSubnet).
 			SetConfigFromFile(configName).
 			SetProfileType(profileType).
 			Build()
 
 		return &server, nil
 	}
-	server := builder.SetStorages(ms, ms, nil).
+	server := builder.SetStorages(ms, ms, nil, ms).
 		SetDeleter(workerCount, batchSize, queueSize).
-		SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled).
+		SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled, trustedSubnet).
 		SetConfigFromFile(configName).
 		SetProfileType(profileType).
 		Build()

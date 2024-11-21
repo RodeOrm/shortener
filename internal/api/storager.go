@@ -36,3 +36,7 @@ type UserStorager interface {
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
 	SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error)
 }
+
+type ServerStorager interface {
+	SelectStatistic() (*core.ServerStatistic, error)
+}

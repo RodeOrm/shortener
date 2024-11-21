@@ -125,6 +125,16 @@ func (s *postgresStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLP
 	return urls, nil
 }
 
+// SelectStatistic возвращает статистику по пользователям и сокращенным URL
+func (s *postgresStorage) SelectStatistic() (*core.ServerStatistic, error) {
+	stat := &core.ServerStatistic{}
+	err := s.preparedStatements["SelectStatistic"].Get(stat)
+	if err != nil {
+		return nil, err
+	}
+	return stat, nil
+}
+
 // Close закрывает соединение
 func (s *postgresStorage) Close() {
 	s.DB.Close()
@@ -215,6 +225,11 @@ func (s *postgresStorage) prepareStatements() error {
 		return err
 	}
 
+	nstmtStat, err := s.DB.Preparex(`SELECT COUNT(DISTINCT u.ID) AS UrlQty, COUNT(DISTINCT us.ID) AS UsrQty FROM urls u CROSS JOIN users us`)
+	if err != nil {
+		return err
+	}
+
 	// deleteURL UPDATE Urls SET isDeleted = true WHERE short = $1 AND userID = $2
 
 	s.preparedStatements["SelectUser"] = nstmtSelectUser
@@ -224,6 +239,7 @@ func (s *postgresStorage) prepareStatements() error {
 	s.preparedStatements["SelectOriginalURL"] = nstmtSelectOriginalURL
 	s.preparedStatements["SelectUserURLHistory"] = nstmtSelectUserURLHistory
 	s.preparedStatements["DeleteURL"] = nstmtDeleteURL
+	s.preparedStatements["SelectStatistic"] = nstmtStat
 
 	return nil
 }

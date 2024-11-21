@@ -20,6 +20,7 @@ type ServerConfig struct {
 	ServerAddress   string `json:"server_address,omitempty"`    // "server_address": "localhost:8080"
 	BaseURL         string `json:"base_url,omitempty"`          // "base_url": "http://localhost"
 	FileStoragePath string `json:"file_storage_path,omitempty"` // "file_storage_path": "/path/to/file.db"
+	TrustedSubnet   string `json:"trusted_subnet,omitempty"`
 }
 
 // DatabaseConfig параметры, связанные с СУБД
@@ -108,17 +109,23 @@ func (s ServerBuilder) SetConfigFromFile(configName string) ServerBuilder {
 		s.server.Config.EnableHTTPS = cfg.EnableHTTPS
 	}
 
+	if s.server.Config.TrustedSubnet == "" {
+		s.server.Config.TrustedSubnet = cfg.TrustedSubnet
+	}
+
 	log.Println(s.server.Config)
 	return s
 }
 
 // SetConfig заполняет конфигурацию данными из переменных окружения и флагов
-func (s ServerBuilder) SetConfig(sa, bu, fsp, dn, eh string) ServerBuilder {
+func (s ServerBuilder) SetConfig(sa, bu, fsp, dn, eh, tn string) ServerBuilder {
 	s.server.Config = Config{
 		ServerConfig: ServerConfig{
 			ServerAddress:   sa,
 			BaseURL:         bu,
-			FileStoragePath: fsp},
+			FileStoragePath: fsp,
+			TrustedSubnet:   tn,
+		},
 		DatabaseConfig: DatabaseConfig{DatabaseDSN: dn},
 	}
 
@@ -133,10 +140,11 @@ func (s ServerBuilder) SetConfig(sa, bu, fsp, dn, eh string) ServerBuilder {
 }
 
 // SetStorages указывает хранилища для сервера
-func (s ServerBuilder) SetStorages(url URLStorager, user UserStorager, db DBStorager) ServerBuilder {
+func (s ServerBuilder) SetStorages(url URLStorager, user UserStorager, db DBStorager, ss ServerStorager) ServerBuilder {
 	s.server.URLStorage = url
 	s.server.UserStorage = user
 	s.server.DBStorage = db
+	s.server.ServerStorage = ss
 	return s
 }
 

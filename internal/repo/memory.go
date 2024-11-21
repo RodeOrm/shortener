@@ -119,3 +119,8 @@ func (s *memoryStorage) DeleteURLs(URLs []core.URL) error {
 	logger.Log.Info("сделали вид, что удалили URL из памяти")
 	return nil
 }
+
+// SelectStatistic возвращает статистику по пользователям и сокращенным URL
+func (s *memoryStorage) SelectStatistic() (*core.ServerStatistic, error) {
+	return &core.ServerStatistic{UsrQty: len(s.users), UrlQty: len(s.userURLPairs)}, nil
+}

@@ -20,6 +20,7 @@ func TestSetConfigFromFile(t *testing.T) {
 			ServerAddress:   "localhost:8181",
 			BaseURL:         "http://localhost",
 			FileStoragePath: "/path/to/file.db",
+			TrustedSubnet:   "trustedSubnet",
 		},
 		DatabaseConfig: DatabaseConfig{
 			DatabaseDSN: "dsn",
@@ -45,12 +46,13 @@ func TestSetConfigFromFile(t *testing.T) {
 	assert.Equal(t, "http://localhost", builder.server.Config.BaseURL)
 	assert.Equal(t, "/path/to/file.db", builder.server.Config.FileStoragePath)
 	assert.Equal(t, "dsn", builder.server.Config.DatabaseDSN)
+	assert.Equal(t, "trustedSubnet", builder.server.Config.TrustedSubnet)
 	assert.True(t, builder.server.Config.EnableHTTPS)
 }
 
 func TestSetConfig(t *testing.T) {
 	builder := ServerBuilder{}
-	builder = builder.SetConfig("localhost:8080", "http://localhost", "/path/to/file.db", "dsn", "true")
+	builder = builder.SetConfig("localhost:8080", "http://localhost", "/path/to/file.db", "dsn", "true", "trustedSubnet")
 
 	// Проверка значений
 	assert.Equal(t, "localhost:8080", builder.server.Config.ServerAddress)

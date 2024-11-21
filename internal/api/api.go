@@ -31,9 +31,10 @@ type Server struct {
 
 	ProfileType int // Тип профилирования (если необходимо)
 
-	URLStorage  URLStorager  // Хранилище данных для URL
-	UserStorage UserStorager // Хранилище данных для URL
-	DBStorage   DBStorager   // Хранилище данных для DB
+	URLStorage    URLStorager    // Хранилище данных для URL
+	UserStorage   UserStorager   // Хранилище данных для URL
+	DBStorage     DBStorager     // Хранилище данных для DB
+	ServerStorage ServerStorager // Хранилище статистики сервера
 
 	Config
 	Deleter
@@ -61,6 +62,7 @@ func ServerStart(s *Server) error {
 	r.HandleFunc("/api/user/urls", s.APIUserGetURLsHandler).Methods(http.MethodGet)
 	r.HandleFunc("/api/user/urls", s.APIUserDeleteURLsHandler).Methods(http.MethodDelete)
 	r.HandleFunc("/api/shorten/batch", s.APIShortenBatchHandler).Methods(http.MethodPost)
+	r.HandleFunc("/api/internal/stats", s.APIStatsHandler).Methods(http.MethodGet)
 
 	r.HandleFunc("/", s.badRequestHandler)
 	r.Use(middleware.WithZip, middleware.WithLog)
