@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -22,6 +21,7 @@ import (
 
 // ServerStart запускает веб-сервер
 func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
+	defer wg.Done()
 
 	if cs.URLStorage == nil || cs.UserStorage == nil {
 		return fmt.Errorf("не определены хранилища")
@@ -39,7 +39,6 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 	r.HandleFunc("/", s.RootHandler).Methods(http.MethodPost)
 	r.HandleFunc("/ping", s.PingDBHandler).Methods(http.MethodGet)
 	r.HandleFunc("/{URL}", s.RootURLHandler).Methods(http.MethodGet)
-
 	r.HandleFunc("/api/shorten", s.APIShortenHandler).Methods(http.MethodPost)
 	r.HandleFunc("/api/user/urls", s.APIUserGetURLsHandler).Methods(http.MethodGet)
 	r.HandleFunc("/api/user/urls", s.APIUserDeleteURLsHandler).Methods(http.MethodDelete)
@@ -59,8 +58,8 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 	s.srv = &http.Server{
 		Handler:      r,
 		Addr:         s.ServerAddress,
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: s.ServerWriteTimeout,
+		ReadTimeout:  s.ServerReadTimeout,
 	}
 
 	s.gracefulShutDown(wg)
@@ -74,8 +73,8 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 		// ждём завершения процедуры graceful shutdown
 		<-s.IdleConnsClosed
 		// получили оповещение о завершении
-		logger.Log.Info("Server Shutdowned",
-			zap.String("Server Shutdowned gracefully", s.ServerAddress),
+		logger.Log.Info("https server shutdowned",
+			zap.String("Завершили изящное выключение", s.ServerAddress),
 		)
 
 		if err != nil {
@@ -88,7 +87,8 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 		// получили оповещение о завершении
 		// например закрыть соединение с базой данных,
 		// закрыть открытые файлы
-		logger.Log.Info("Server Shutdowned",
+
+		logger.Log.Info("http server shutdowned",
 			zap.String("Завершили изящное выключение", s.ServerAddress),
 		)
 
@@ -114,7 +114,6 @@ func (h *httpServer) gracefulShutDown(wg *sync.WaitGroup) {
 	signal.Notify(sigint, syscall.SIGQUIT)
 	// запускаем горутину обработки пойманных прерываний
 	go func() {
-		defer wg.Done()
 		// читаем из канала прерываний
 		// поскольку нужно прочитать только одно прерывание,
 		// можно обойтись без цикла

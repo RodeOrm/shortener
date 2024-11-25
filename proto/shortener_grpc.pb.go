@@ -8,7 +8,6 @@ package proto
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -25,6 +24,7 @@ const (
 	URLService_GetUserURLs_FullMethodName    = "/shortener.URLService/GetUserURLs"
 	URLService_DeleteUserURLs_FullMethodName = "/shortener.URLService/DeleteUserURLs"
 	URLService_Stats_FullMethodName          = "/shortener.URLService/Stats"
+	URLService_Root_FullMethodName           = "/shortener.URLService/Root"
 )
 
 // URLServiceClient is the client API for URLService service.
@@ -36,6 +36,7 @@ type URLServiceClient interface {
 	GetUserURLs(ctx context.Context, in *UserURLsRequest, opts ...grpc.CallOption) (*UserURLsResponse, error)
 	DeleteUserURLs(ctx context.Context, in *DeleteURLsRequest, opts ...grpc.CallOption) (*DeleteURLsResponse, error)
 	Stats(ctx context.Context, in *StatsRequest, opts ...grpc.CallOption) (*StatsResponse, error)
+	Root(ctx context.Context, in *RootRequest, opts ...grpc.CallOption) (*RootResponse, error)
 }
 
 type uRLServiceClient struct {
@@ -96,6 +97,16 @@ func (c *uRLServiceClient) Stats(ctx context.Context, in *StatsRequest, opts ...
 	return out, nil
 }
 
+func (c *uRLServiceClient) Root(ctx context.Context, in *RootRequest, opts ...grpc.CallOption) (*RootResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RootResponse)
+	err := c.cc.Invoke(ctx, URLService_Root_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // URLServiceServer is the server API for URLService service.
 // All implementations must embed UnimplementedURLServiceServer
 // for forward compatibility.
@@ -105,6 +116,7 @@ type URLServiceServer interface {
 	GetUserURLs(context.Context, *UserURLsRequest) (*UserURLsResponse, error)
 	DeleteUserURLs(context.Context, *DeleteURLsRequest) (*DeleteURLsResponse, error)
 	Stats(context.Context, *StatsRequest) (*StatsResponse, error)
+	Root(context.Context, *RootRequest) (*RootResponse, error)
 	mustEmbedUnimplementedURLServiceServer()
 }
 
@@ -129,6 +141,9 @@ func (UnimplementedURLServiceServer) DeleteUserURLs(context.Context, *DeleteURLs
 }
 func (UnimplementedURLServiceServer) Stats(context.Context, *StatsRequest) (*StatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Stats not implemented")
+}
+func (UnimplementedURLServiceServer) Root(context.Context, *RootRequest) (*RootResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Root not implemented")
 }
 func (UnimplementedURLServiceServer) mustEmbedUnimplementedURLServiceServer() {}
 func (UnimplementedURLServiceServer) testEmbeddedByValue()                    {}
@@ -241,6 +256,24 @@ func _URLService_Stats_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _URLService_Root_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RootRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(URLServiceServer).Root(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: URLService_Root_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(URLServiceServer).Root(ctx, req.(*RootRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // URLService_ServiceDesc is the grpc.ServiceDesc for URLService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -267,6 +300,10 @@ var URLService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Stats",
 			Handler:    _URLService_Stats_Handler,
+		},
+		{
+			MethodName: "Root",
+			Handler:    _URLService_Root_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

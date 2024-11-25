@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"github.com/rodeorm/shortener/internal/api"
 	"github.com/rodeorm/shortener/internal/core"
+	grpc "github.com/rodeorm/shortener/internal/grpc/server"
 	"github.com/rodeorm/shortener/internal/repo"
 )
 
@@ -38,12 +39,12 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
 
 	core.Profile(server.ProfileType)
 
 	go api.ServerStart(server, &wg)
-	// go gprc.ServerStart(grpc, &wg)
+	go grpc.ServerStart(server, &wg)
 
 	wg.Wait()
 }

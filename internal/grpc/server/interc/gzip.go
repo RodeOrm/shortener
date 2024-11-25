@@ -1,0 +1,2 @@
+// Package interc
+package interc

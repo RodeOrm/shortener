@@ -10,6 +10,7 @@ service URLService {
     rpc GetUserURLs(UserURLsRequest) returns (UserURLsResponse);
     rpc DeleteUserURLs(DeleteURLsRequest) returns (DeleteURLsResponse);
     rpc Stats(StatsRequest) returns (StatsResponse);
+    rpc Root(RootRequest) returns (RootResponse);
 }
 
 // URL
@@ -25,7 +26,7 @@ message URL {
 message User {
 	sint32 key = 1;           // Уникальный идентификатор пользователя
 	bool wasUnathorized = 2;  // Признак того, что пользователь был создан автоматически, после того как не получилось авторизовать его через куки
-  repeated URL urls = 3;    // Сокращенные пользователем URL
+    repeated URL urls = 3;    // Сокращенные пользователем URL
 }
 
 // Statistic - статистика по сокращенным URL и количеству пользователей в сервисе
@@ -78,4 +79,14 @@ message StatsRequest {}
 // StatsRequest ответ для Stats
 message StatsResponse {
     Statistic statistic = 1;
+}
+
+//RootRequest запрос для Root
+message RootRequest{
+    string url = 1;
+}
+
+//RootResponse ответ для Root
+message RootResponse{
+    string shorten = 1;
 }

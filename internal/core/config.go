@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
-/*
 const (
 	serverReadTimeout  = 15 * time.Second
 	serverWriteTimeout = 15 * time.Second
 	shutdownTimeout    = 30 * time.Second
 )
-*/
 
 // Config конфигурация сервера
 type Config struct {
@@ -23,10 +22,14 @@ type Config struct {
 
 // ServerConfig основные параметры сервера
 type ServerConfig struct {
-	ServerAddress   string `json:"server_address,omitempty"`    // "server_address": "localhost:8080"
-	BaseURL         string `json:"base_url,omitempty"`          // "base_url": "http://localhost"
-	FileStoragePath string `json:"file_storage_path,omitempty"` // "file_storage_path": "/path/to/file.db"
-	TrustedSubnet   string `json:"trusted_subnet,omitempty"`
+	ServerAddress      string `json:"server_address,omitempty"` // "server_address": "localhost:8080"
+	GRPCAddress        string `json:"grpc_address,omitempty"`
+	BaseURL            string `json:"base_url,omitempty"`          // "base_url": "http://localhost"
+	FileStoragePath    string `json:"file_storage_path,omitempty"` // "file_storage_path": "/path/to/file.db"
+	TrustedSubnet      string `json:"trusted_subnet,omitempty"`
+	ServerReadTimeout  time.Duration
+	ServerWriteTimeout time.Duration
+	ShutdownTimeout    time.Duration
 }
 
 // DatabaseConfig параметры, связанные с СУБД
@@ -145,6 +148,7 @@ func Configurate(a, b, c, config, d, f, w, s, q, p, bs, t *string) (*Server, err
 		SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled, trustedSubnet).
 		SetConfigFromFile(configName).
 		SetProfileType(profileType).
+		SetTimeOuts(serverReadTimeout, serverWriteTimeout, shutdownTimeout).
 		Build()
 
 	return &server, nil

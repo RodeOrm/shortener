@@ -12,10 +12,6 @@ import (
 // Server - общий набор атрибутов для http и grpc сервера
 type Server struct {
 	IdleConnsClosed chan struct{} // Уведомление о завершении работы
-	ShutdownTimeout time.Duration
-
-	//serverReadTimeout  time.Duration
-	// serverWriteTimeout time.Duration
 
 	ProfileType int // Тип профилирования (если необходимо)
 
@@ -98,6 +94,8 @@ func (s ServerBuilder) SetConfigFromFile(configName string) ServerBuilder {
 		s.server.Config.TrustedSubnet = cfg.TrustedSubnet
 	}
 
+	s.server.Config.GRPCAddress = cfg.GRPCAddress
+
 	log.Println(s.server.Config)
 	return s
 }
@@ -133,6 +131,13 @@ func (s ServerBuilder) SetDeleter(wc, bs, qs int) ServerBuilder {
 // SetProfileType конфигурирует профилирование
 func (s ServerBuilder) SetProfileType(profileType int) ServerBuilder {
 	s.server.ProfileType = profileType
+	return s
+}
+
+func (s ServerBuilder) SetTimeOuts(readTimeOut, writeTimeOut, shotDownTimeOut time.Duration) ServerBuilder {
+	s.server.Config.ShutdownTimeout = shotDownTimeOut
+	s.server.Config.ServerReadTimeout = readTimeOut
+	s.server.Config.ServerWriteTimeout = writeTimeOut
 	return s
 }
 
