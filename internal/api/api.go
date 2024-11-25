@@ -22,7 +22,7 @@ import (
 
 // ServerStart запускает веб-сервер
 func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
-	defer wg.Done()
+	// defer wg.Done()
 
 	if cs.URLStorage == nil || cs.UserStorage == nil {
 		return fmt.Errorf("не определены хранилища")
