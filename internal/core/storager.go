@@ -35,6 +35,7 @@ type UserStorager interface {
 	SelectUserURLHistory(user *User) ([]UserURLPair, error)
 }
 
+// StatStorager абстрация для методов хранилища статистики
 type StatStorager interface {
 	SelectStatistic() (*ServerStatistic, error)
 }

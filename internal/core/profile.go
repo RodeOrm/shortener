@@ -13,6 +13,7 @@ const (
 	resultProfile        // Профилирование в файл result
 )
 
+// Profile осуществляет профилирование
 func Profile(profileType int) error {
 	if profileType != noneProfile {
 		var (
