@@ -22,7 +22,6 @@ import (
 
 // ServerStart запускает веб-сервер
 func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
-	// defer wg.Done()
 
 	if cs.URLStorage == nil || cs.UserStorage == nil {
 		return fmt.Errorf("не определены хранилища")
@@ -64,7 +63,7 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	s.gracefulShutDown()
+	s.gracefulShutDown(wg)
 
 	core.StartWorkerPool(s.WorkerCount, s.DeleteQueue, s.URLStorage, s.BatchSize, s.IdleConnsClosed)
 
@@ -101,7 +100,7 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 	return nil
 }
 
-func (h *httpServer) gracefulShutDown() {
+func (h *httpServer) gracefulShutDown(wg *sync.WaitGroup) {
 
 	// через этот канал сообщим основному потоку, что соединения закрыты
 	h.IdleConnsClosed = make(chan struct{})
@@ -115,6 +114,7 @@ func (h *httpServer) gracefulShutDown() {
 	signal.Notify(sigint, syscall.SIGQUIT)
 	// запускаем горутину обработки пойманных прерываний
 	go func() {
+		defer wg.Done()
 		// читаем из канала прерываний
 		// поскольку нужно прочитать только одно прерывание,
 		// можно обойтись без цикла
