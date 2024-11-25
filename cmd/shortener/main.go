@@ -22,12 +22,21 @@ import (
 func main() {
 	flag.Parse()
 	server, err := core.Configurate(a, b, c, config, d, f, w, s, q, p, bs, t)
-	ms, fs, ps := repo.GetStorages(server.FileStoragePath, server.DatabaseDSN)
-	server.SetStorages(ps, ps, ps, ps, fs, fs, ms, ms)
-
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	ms, fs, ps := repo.GetStorages(server.FileStoragePath, server.DatabaseDSN)
+	if ps != nil {
+		server.SetStorages(ps, ps, ps, ps)
+	} else if fs != nil {
+		server.SetStorages(fs, fs, nil, nil)
+	} else if ms != nil {
+		server.SetStorages(ms, ms, nil, nil)
+	} else {
+		log.Fatal(err)
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 
