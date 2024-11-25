@@ -62,7 +62,7 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 		ReadTimeout:  s.ServerReadTimeout,
 	}
 
-	s.gracefulShutDown(wg)
+	s.gracefulShutDown()
 
 	core.StartWorkerPool(s.WorkerCount, s.DeleteQueue, s.URLStorage, s.BatchSize, s.IdleConnsClosed)
 
@@ -100,7 +100,7 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 	return nil
 }
 
-func (h *httpServer) gracefulShutDown(wg *sync.WaitGroup) {
+func (h *httpServer) gracefulShutDown() {
 
 	// через этот канал сообщим основному потоку, что соединения закрыты
 	h.IdleConnsClosed = make(chan struct{})
