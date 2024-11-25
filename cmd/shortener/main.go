@@ -1,8 +1,13 @@
 package main
 
 import (
+	"flag"
+	"sync"
+
 	"github.com/labstack/gommon/log"
 	"github.com/rodeorm/shortener/internal/api"
+	"github.com/rodeorm/shortener/internal/core"
+	"github.com/rodeorm/shortener/internal/repo"
 )
 
 /*
@@ -15,12 +20,21 @@ import (
 */
 
 func main() {
+	flag.Parse()
+	server, err := core.Configurate(a, b, c, config, d, f, w, s, q, p, bs, t)
+	ms, fs, ps := repo.GetStorages(server.FileStoragePath, server.DatabaseDSN)
+	server.SetStorages(ps, ps, ps, ps, fs, fs, ms, ms)
 
-	server, err := configurate()
 	if err != nil {
 		log.Fatal(err)
 	}
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	profile(server.ProfileType)
-	api.ServerStart(server)
+	core.Profile(server.ProfileType)
+
+	go api.ServerStart(server, &wg)
+	// go gprc.ServerStart(grpc, &wg)
+
+	wg.Wait()
 }

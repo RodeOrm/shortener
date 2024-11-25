@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"os"
@@ -13,7 +13,7 @@ const (
 	resultProfile        // Профилирование в файл result
 )
 
-func profile(profileType int) error {
+func Profile(profileType int) error {
 	if profileType != noneProfile {
 		var (
 			fmem *os.File

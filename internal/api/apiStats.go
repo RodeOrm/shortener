@@ -16,7 +16,7 @@ APIStatsHandler - обработчик для GET /api/internal/stats, возв�
 	  "users": <int> // количество пользователей в сервисе
 	}
 */
-func (h *Server) APIStatsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *httpServer) APIStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	/*
 	   При запросе эндпоинта /api/internal/stats нужно проверять, что переданный в заголовке запроса X-Real-IP IP-адрес клиента входит в доверенную подсеть,
@@ -29,7 +29,7 @@ func (h *Server) APIStatsHandler(w http.ResponseWriter, r *http.Request) {
 		h.ForbiddenHandler(w, r)
 	}
 
-	s, err := h.ServerStorage.SelectStatistic()
+	s, err := h.StatStorage.SelectStatistic()
 	if err != nil {
 		handleError(w, err, "APIStatsHandler 1")
 		h.badRequestHandler(w, r)

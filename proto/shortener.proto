@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package shortener;
+
+option go_package = "shortener/proto";
+
+service URLService {
+    rpc Shorten(ShortenRequest) returns (ShortenResponse);
+    rpc PingDB(PingDBRequest) returns (PingDBResponse);
+    rpc GetUserURLs(UserURLsRequest) returns (UserURLsResponse);
+    rpc DeleteUserURLs(DeleteURLsRequest) returns (DeleteURLsResponse);
+    rpc Stats(StatsRequest) returns (StatsResponse);
+}
+
+// URL
+message URL {
+	 string originalURL = 1;  // Оригинальный урл
+	 string key = 2;          // Ключ, использованный при сокращении
+	 sint32 userKey = 3;      // Пользователь, который сократил URL
+	 bool hasBeenShorted = 4; // Признак, что сокращали ранее
+	 bool hasBeenDeleted = 5; // Признал, что был удален
+}
+
+// User - пользователь сервиса
+message User {
+	sint32 key = 1;           // Уникальный идентификатор пользователя
+	bool wasUnathorized = 2;  // Признак того, что пользователь был создан автоматически, после того как не получилось авторизовать его через куки
+  repeated URL urls = 3;    // Сокращенные пользователем URL
+}
+
+// Statistic - статистика по сокращенным URL и количеству пользователей в сервисе
+message Statistic {
+	sint32 urls = 1;    // Количество сокращённых URL в сервисе
+  sint32 users = 2;   // Количество пользователей в сервисе
+}
+
+// ShortenRequest запрос для Shorten
+message ShortenRequest {
+    string url = 1;
+}
+
+// ShortenResponse ответ для Shorten
+message ShortenResponse {
+   URL url   = 1;
+}
+
+// PingDBRequest запрос для PingDB
+message PingDBRequest {}
+
+// PingDBResponse ответ для PingDB
+message PingDBResponse {
+}
+
+// UserURLsRequest запрос для UserURLs
+message UserURLsRequest {
+    string user_id = 1;
+}
+
+// UserURLsResponse ответ для UserURLs
+message UserURLsResponse {
+    User user = 1;
+}
+
+// DeleteURLsRequest запрос для DeleteURLs
+message DeleteURLsRequest {
+    string user_id = 1;
+    repeated string urls_to_delete = 2;
+}
+
+// DeleteURLsResponse ответ для DeleteURLs
+message DeleteURLsResponse {
+}
+
+// StatsRequest запрос для Stats
+message StatsRequest {}
+
+
+// StatsRequest ответ для Stats
+message StatsResponse {
+    Statistic statistic = 1;
+}
