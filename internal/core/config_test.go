@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"encoding/json"
@@ -7,6 +7,28 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+/*
+func TestConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+
+		{
+			name: "Проверка нормальной конфигурации c БД",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server, err := Configurate()
+			require.NoError(t, err)
+			err = profile(server.ProfileType)
+			require.NoError(t, err)
+		})
+	}
+}
+*/
 
 func TestSetConfigFromFile(t *testing.T) {
 	// Создаем временный конфигурационный файл для теста

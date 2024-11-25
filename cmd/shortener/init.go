@@ -4,9 +4,10 @@ import (
 	"flag"
 )
 
-var a, b, c, config, f, d, w, s, q, p, bs, t *string
+var a, b, c, config, d, f, w, s, q, p, bs, t *string
 
 func init() {
+
 	//флаг -a, отвечающий за адрес запуска HTTP-сервера (переменная SERVER_ADDRESS)
 	a = flag.String("a", "", "SERVER_ADDRESS")
 	//флаг -b, отвечающий за базовый адрес результирующего сокращённого URL (переменная BASE_URL)
@@ -31,6 +32,8 @@ func init() {
 	t = flag.String("t", "", "TRUSTED_SUBNET")
 	//флаг -w, отвечающий за число воркеров для удаления
 	w = flag.String("w", "", "WORKER_COUNTS")
+
+	logInit()
 
 	printBuildInfo()
 }

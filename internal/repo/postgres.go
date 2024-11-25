@@ -19,11 +19,6 @@ type postgresStorage struct {
 	preparedStatements map[string]*sqlx.Stmt
 }
 
-// Проверка соединения
-func (s *postgresStorage) Ping() error {
-	return s.DB.Ping()
-}
-
 /*
 InsertUser принимает идентификатор пользователя
 
@@ -49,8 +44,13 @@ func (s *postgresStorage) InsertUser(Key int) (*core.User, error) {
 	return &core.User{Key: Key, WasUnathorized: false}, nil
 }
 
+// Ping проверяет соединение
+func (s *postgresStorage) Ping() error {
+	return s.DB.Ping()
+}
+
 /*
-	InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа.
+InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа.
 
 Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
 */

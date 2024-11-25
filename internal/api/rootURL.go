@@ -12,7 +12,7 @@ import (
 // Для переброски возвращает ответ со статусом 307 TemporaryRedirect и оригинальным URL в HTTP-заголовке Location.
 // Для некорректных запросов возвращает ответ со статусом 400 BadRequest.
 // При запросе удалённого URL с помощью хендлера возвращается ответ со статусом 410 Gone.
-func (h *Server) RootURLHandler(w http.ResponseWriter, r *http.Request) {
+func (h *httpServer) RootURLHandler(w http.ResponseWriter, r *http.Request) {
 	currentID := mux.Vars(r)["URL"]
 	url, err := h.URLStorage.SelectOriginalURL(currentID)
 

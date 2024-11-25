@@ -1,26 +1,62 @@
-package main
+package core
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"strconv"
-
-	"github.com/rodeorm/shortener/internal/api"
-	"github.com/rodeorm/shortener/internal/logger"
-	"github.com/rodeorm/shortener/internal/repo"
 )
 
-// config выполняет первоначальную конфигурацию
-func configurate() (*api.Server, error) {
-	flag.Parse()
+/*
+const (
+	serverReadTimeout  = 15 * time.Second
+	serverWriteTimeout = 15 * time.Second
+	shutdownTimeout    = 30 * time.Second
+)
+*/
+
+// Config конфигурация сервера
+type Config struct {
+	ServerConfig
+	DatabaseConfig
+	TLSConfig
+}
+
+// ServerConfig основные параметры сервера
+type ServerConfig struct {
+	ServerAddress   string `json:"server_address,omitempty"`    // "server_address": "localhost:8080"
+	BaseURL         string `json:"base_url,omitempty"`          // "base_url": "http://localhost"
+	FileStoragePath string `json:"file_storage_path,omitempty"` // "file_storage_path": "/path/to/file.db"
+	TrustedSubnet   string `json:"trusted_subnet,omitempty"`
+}
+
+// DatabaseConfig параметры, связанные с СУБД
+type DatabaseConfig struct {
+	DatabaseDSN string `json:"database_dsn,omitempty"` //  "database_dsn": ""
+}
+
+// TLSConfig паарметры, связаные с https
+type TLSConfig struct {
+	EnableHTTPS  bool `json:"enable_https,omitempty"` // "enable_https": true
+	IsGivenHTTPS bool // Для случаев, когда значение не представлено
+}
+
+// Deleter конфигурация сервера для удаления
+type Deleter struct {
+	WorkerCount int // Количество воркеров, асинхронно удаляющих url
+	BatchSize   int // Размер пачки для удаления
+
+	DeleteQueue *Queue //Очередь удаления
+
+}
+
+// Configurate выполняет первоначальную конфигурацию
+func Configurate(a, b, c, config, d, f, w, s, q, p, bs, t *string) (*Server, error) {
 
 	var (
 		serverAddress, baseURL, fileStoragePath, databaseConnectionString, configName, httpsEnabled, trustedSubnet string
 		workerCount, batchSize, queueSize, profileType                                                             int
 		err                                                                                                        error
 	)
-	logger.Initialize("info")
 
 	//Адрес запуска HTTP-сервера
 	if *a == "" {
@@ -102,31 +138,10 @@ func configurate() (*api.Server, error) {
 		trustedSubnet = os.Getenv("TRUSTED_SUBNET")
 	}
 
-	ms, fs, ps := repo.GetStorages(fileStoragePath, databaseConnectionString)
-	builder := &api.ServerBuilder{}
+	// ms, fs, ps := repo.GetStorages(fileStoragePath, databaseConnectionString)
+	builder := &ServerBuilder{}
 
-	if ps != nil {
-		server := builder.SetStorages(ps, ps, ps, ps).
-			SetDeleter(workerCount, batchSize, queueSize).
-			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled, trustedSubnet).
-			SetConfigFromFile(configName).
-			SetProfileType(profileType).
-			Build()
-
-		return &server, nil
-
-	} else if fs != nil {
-		server := builder.SetStorages(fs, fs, nil, fs).
-			SetDeleter(workerCount, batchSize, queueSize).
-			SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled, trustedSubnet).
-			SetConfigFromFile(configName).
-			SetProfileType(profileType).
-			Build()
-
-		return &server, nil
-	}
-	server := builder.SetStorages(ms, ms, nil, ms).
-		SetDeleter(workerCount, batchSize, queueSize).
+	server := builder.SetDeleter(workerCount, batchSize, queueSize).
 		SetConfig(serverAddress, baseURL, fileStoragePath, databaseConnectionString, httpsEnabled, trustedSubnet).
 		SetConfigFromFile(configName).
 		SetProfileType(profileType).

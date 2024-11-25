@@ -1,6 +1,4 @@
-package api
-
-import "github.com/rodeorm/shortener/internal/core"
+package core
 
 // DBStorager абстрация для методов, специфичных для БД
 type DBStorager interface {
@@ -18,25 +16,26 @@ type URLStorager interface {
 	//
 	//  Генерирует уникальный ключ для короткого адреса, сохраняет соответствие оригинального URL и ключа.
 	//  Возвращает обновленный URL с соответствующим сокращенным URL, а также признаком того, что URL сократили ранее.
-	InsertURL(URL, baseURL string, user *core.User) (*core.URL, error)
+	InsertURL(URL, baseURL string, user *User) (*URL, error)
 
 	// SelectOriginalURL возвращает URL на основании короткого
-	SelectOriginalURL(shortURL string) (*core.URL, error)
+	SelectOriginalURL(shortURL string) (*URL, error)
 
 	// DeleteURLs массово помечает URL как удаленные. Успешно удалить URL может только пользователь, его создавший.
-	DeleteURLs(URLs []core.URL) error
+	DeleteURLs(URLs []URL) error
 }
 
 // UserStorager абстрация для методов хранилища над User
 type UserStorager interface {
 
 	// InsertUser сохраняет нового пользователя или возвращает уже имеющегося в наличии, а также значение "отсутствие авторизации по переданному идентификатору"
-	InsertUser(Key int) (*core.User, error)
+	InsertUser(Key int) (*User, error)
 
 	// SelectUserURLHistory возвращает перечень соответствий между оригинальным и коротким адресом для конкретного пользователя
-	SelectUserURLHistory(user *core.User) ([]core.UserURLPair, error)
+	SelectUserURLHistory(user *User) ([]UserURLPair, error)
 }
 
-type ServerStorager interface {
-	SelectStatistic() (*core.ServerStatistic, error)
+// StatStorager абстрация для методов хранилища статистики
+type StatStorager interface {
+	SelectStatistic() (*ServerStatistic, error)
 }

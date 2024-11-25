@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"encoding/json"
@@ -6,41 +6,26 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
-// Config конфигурация сервера
-type Config struct {
-	ServerConfig
-	DatabaseConfig
-	TLSConfig
-}
+// Server - общий набор атрибутов для http и grpc сервера
+type Server struct {
+	IdleConnsClosed chan struct{} // Уведомление о завершении работы
+	ShutdownTimeout time.Duration
 
-// ServerConfig основные параметры сервера
-type ServerConfig struct {
-	ServerAddress   string `json:"server_address,omitempty"`    // "server_address": "localhost:8080"
-	BaseURL         string `json:"base_url,omitempty"`          // "base_url": "http://localhost"
-	FileStoragePath string `json:"file_storage_path,omitempty"` // "file_storage_path": "/path/to/file.db"
-	TrustedSubnet   string `json:"trusted_subnet,omitempty"`
-}
+	//serverReadTimeout  time.Duration
+	// serverWriteTimeout time.Duration
 
-// DatabaseConfig параметры, связанные с СУБД
-type DatabaseConfig struct {
-	DatabaseDSN string `json:"database_dsn,omitempty"` //  "database_dsn": ""
-}
+	ProfileType int // Тип профилирования (если необходимо)
 
-// TLSConfig паарметры, связаные с https
-type TLSConfig struct {
-	EnableHTTPS  bool `json:"enable_https,omitempty"` // "enable_https": true
-	IsGivenHTTPS bool // Для случаев, когда значение не представлено
-}
+	URLStorage  URLStorager  // Хранилище данных для URL
+	UserStorage UserStorager // Хранилище данных для URL
+	DBStorage   DBStorager   // Хранилище данных для DB
+	StatStorage StatStorager // Хранилище статистики сервера
 
-// Deleter конфигурация сервера для удаления
-type Deleter struct {
-	WorkerCount int // Количество воркеров, асинхронно удаляющих url
-	BatchSize   int // Размер пачки для удаления
-
-	DeleteQueue *Queue //Очередь удаления
-
+	Config
+	Deleter
 }
 
 // ServerBuilder абстракция для создания сервера
@@ -139,15 +124,6 @@ func (s ServerBuilder) SetConfig(sa, bu, fsp, dn, eh, tn string) ServerBuilder {
 	return s
 }
 
-// SetStorages указывает хранилища для сервера
-func (s ServerBuilder) SetStorages(url URLStorager, user UserStorager, db DBStorager, ss ServerStorager) ServerBuilder {
-	s.server.URLStorage = url
-	s.server.UserStorage = user
-	s.server.DBStorage = db
-	s.server.ServerStorage = ss
-	return s
-}
-
 // SetDeleter конфигурирует удаление URL
 func (s ServerBuilder) SetDeleter(wc, bs, qs int) ServerBuilder {
 	s.server.Deleter = Deleter{WorkerCount: wc, BatchSize: bs, DeleteQueue: NewQueue(qs)}
@@ -163,4 +139,12 @@ func (s ServerBuilder) SetProfileType(profileType int) ServerBuilder {
 // Build возвращает сконфигурированный сервер объект Car.
 func (s ServerBuilder) Build() Server {
 	return s.server
+}
+
+// SetStorages выбирает реализацию каждого интерфейса из трех. Костыльная зависимость от конкертного
+func (s *Server) SetStorages(url URLStorager, user UserStorager, db DBStorager, st StatStorager) {
+	s.URLStorage = url
+	s.UserStorage = user
+	s.DBStorage = db
+	s.StatStorage = st
 }
