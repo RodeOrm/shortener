@@ -29,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(1)
 
 	core.Profile(server.ProfileType)
 
