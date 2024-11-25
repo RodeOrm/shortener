@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -143,24 +142,9 @@ func (s ServerBuilder) Build() Server {
 }
 
 // SetStorages выбирает реализацию каждого интерфейса из трех. Костыльная зависимость от конкертного
-func (s *Server) SetStorages(psURL URLStorager, psUser UserStorager,
-	psDB DBStorager, psSt StatStorager,
-	fsURL URLStorager, fsUser UserStorager,
-	msURL URLStorager, msUser UserStorager) error {
-	if psURL != nil && psUser != nil && psDB != nil && psSt != nil {
-		s.URLStorage = psURL
-		s.UserStorage = psUser
-		s.DBStorage = psDB
-		s.StatStorage = psSt
-		return nil
-	} else if fsURL != nil && fsUser != nil {
-		s.URLStorage = fsURL
-		s.UserStorage = fsUser
-		return nil
-	} else if msURL != nil && msUser != nil {
-		s.URLStorage = msURL
-		s.UserStorage = msUser
-		return nil
-	}
-	return fmt.Errorf("не инстанцировать хранилище для сервера")
+func (s *Server) SetStorages(url URLStorager, user UserStorager, db DBStorager, st StatStorager) {
+	s.URLStorage = url
+	s.UserStorage = user
+	s.DBStorage = db
+	s.StatStorage = st
 }

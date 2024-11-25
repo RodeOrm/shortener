@@ -22,6 +22,7 @@ import (
 
 // ServerStart запускает веб-сервер
 func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
+	defer wg.Done()
 
 	if cs.URLStorage == nil || cs.UserStorage == nil {
 		return fmt.Errorf("не определены хранилища")
@@ -101,6 +102,7 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 }
 
 func (h *httpServer) gracefulShutDown() {
+
 	// через этот канал сообщим основному потоку, что соединения закрыты
 	h.IdleConnsClosed = make(chan struct{})
 	// канал для перенаправления прерываний
