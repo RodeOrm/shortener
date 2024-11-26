@@ -41,15 +41,12 @@ func GetUserKeyFromCtx(ctx *context.Context) (string, error) {
 	return userKey, nil
 }
 
-// PutUserKeyToCtx помещает идентификатор пользователя в контекст
-func PutUserKeyToCtx(Key string) (*context.Context, error) {
+// PutUserKeyToMD помещает идентификатор пользователя в мету
+func PutUserKeyToMD(Key string) (metadata.MD, error) {
 	val, err := crypt.Encrypt(Key)
 	if err != nil {
 		return nil, err
 	}
 
-	md := metadata.New(map[string]string{"token": val})
-	ctx := metadata.NewOutgoingContext(context.Background(), md)
-
-	return &ctx, nil
+	return metadata.Pairs("token", val), nil
 }

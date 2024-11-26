@@ -266,7 +266,7 @@ type ShortenResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Url *URL `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
 }
 
 func (x *ShortenResponse) Reset() {
@@ -299,11 +299,11 @@ func (*ShortenResponse) Descriptor() ([]byte, []int) {
 	return file_shortener_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ShortenResponse) GetUrl() *URL {
+func (x *ShortenResponse) GetUrl() string {
 	if x != nil {
 		return x.Url
 	}
-	return nil
+	return ""
 }
 
 // PingDBRequest запрос для PingDB
@@ -765,10 +765,9 @@ var file_shortener_proto_rawDesc = []byte{
 	0x72, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x11, 0x52, 0x05, 0x75, 0x73, 0x65, 0x72, 0x73, 0x22,
 	0x22, 0x0a, 0x0e, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
-	0x75, 0x72, 0x6c, 0x22, 0x33, 0x0a, 0x0f, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x20, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x65, 0x72, 0x2e,
-	0x55, 0x52, 0x4c, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x0f, 0x0a, 0x0d, 0x50, 0x69, 0x6e, 0x67,
+	0x75, 0x72, 0x6c, 0x22, 0x23, 0x0a, 0x0f, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x65, 0x6e, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x22, 0x0f, 0x0a, 0x0d, 0x50, 0x69, 0x6e, 0x67,
 	0x44, 0x42, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x10, 0x0a, 0x0e, 0x50, 0x69, 0x6e,
 	0x67, 0x44, 0x42, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2a, 0x0a, 0x0f, 0x55,
 	0x73, 0x65, 0x72, 0x55, 0x52, 0x4c, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17,
@@ -856,26 +855,25 @@ var file_shortener_proto_goTypes = []any{
 }
 var file_shortener_proto_depIdxs = []int32{
 	0,  // 0: shortener.User.urls:type_name -> shortener.URL
-	0,  // 1: shortener.ShortenResponse.url:type_name -> shortener.URL
-	1,  // 2: shortener.UserURLsResponse.user:type_name -> shortener.User
-	2,  // 3: shortener.StatsResponse.statistic:type_name -> shortener.Statistic
-	3,  // 4: shortener.URLService.Shorten:input_type -> shortener.ShortenRequest
-	5,  // 5: shortener.URLService.PingDB:input_type -> shortener.PingDBRequest
-	7,  // 6: shortener.URLService.GetUserURLs:input_type -> shortener.UserURLsRequest
-	9,  // 7: shortener.URLService.DeleteUserURLs:input_type -> shortener.DeleteURLsRequest
-	11, // 8: shortener.URLService.Stats:input_type -> shortener.StatsRequest
-	13, // 9: shortener.URLService.Root:input_type -> shortener.RootRequest
-	4,  // 10: shortener.URLService.Shorten:output_type -> shortener.ShortenResponse
-	6,  // 11: shortener.URLService.PingDB:output_type -> shortener.PingDBResponse
-	8,  // 12: shortener.URLService.GetUserURLs:output_type -> shortener.UserURLsResponse
-	10, // 13: shortener.URLService.DeleteUserURLs:output_type -> shortener.DeleteURLsResponse
-	12, // 14: shortener.URLService.Stats:output_type -> shortener.StatsResponse
-	14, // 15: shortener.URLService.Root:output_type -> shortener.RootResponse
-	10, // [10:16] is the sub-list for method output_type
-	4,  // [4:10] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	1,  // 1: shortener.UserURLsResponse.user:type_name -> shortener.User
+	2,  // 2: shortener.StatsResponse.statistic:type_name -> shortener.Statistic
+	3,  // 3: shortener.URLService.Shorten:input_type -> shortener.ShortenRequest
+	5,  // 4: shortener.URLService.PingDB:input_type -> shortener.PingDBRequest
+	7,  // 5: shortener.URLService.GetUserURLs:input_type -> shortener.UserURLsRequest
+	9,  // 6: shortener.URLService.DeleteUserURLs:input_type -> shortener.DeleteURLsRequest
+	11, // 7: shortener.URLService.Stats:input_type -> shortener.StatsRequest
+	13, // 8: shortener.URLService.Root:input_type -> shortener.RootRequest
+	4,  // 9: shortener.URLService.Shorten:output_type -> shortener.ShortenResponse
+	6,  // 10: shortener.URLService.PingDB:output_type -> shortener.PingDBResponse
+	8,  // 11: shortener.URLService.GetUserURLs:output_type -> shortener.UserURLsResponse
+	10, // 12: shortener.URLService.DeleteUserURLs:output_type -> shortener.DeleteURLsResponse
+	12, // 13: shortener.URLService.Stats:output_type -> shortener.StatsResponse
+	14, // 14: shortener.URLService.Root:output_type -> shortener.RootResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_shortener_proto_init() }

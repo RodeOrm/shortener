@@ -2,6 +2,7 @@ package interc
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/rodeorm/shortener/internal/logger"
@@ -28,12 +29,16 @@ func UnaryLogInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryS
 		grpcStatus = status.New(0, "OK")
 	}
 
+	if err != nil {
+		fmt.Println("Ошибка сериализации:", err)
+		return resp, err
+	}
+
 	// Логируем информацию
 	logger.Log.Info("gRPC call in log-interceptor",
 		zap.String("method", info.FullMethod),
 		zap.Duration("duration", duration),
 		zap.String("status", grpcStatus.Message()),
-		zap.Int64("size", int64(len(req.(string)))), // Считаем размер запроса как длину строки запроса
 	)
 
 	return resp, err

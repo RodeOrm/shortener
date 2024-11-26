@@ -1,4 +1,4 @@
-package server
+package grpc
 
 import (
 	"context"
@@ -6,12 +6,13 @@ import (
 	"strconv"
 
 	"github.com/rodeorm/shortener/internal/core"
-	"github.com/rodeorm/shortener/internal/grpc/server/meta"
+	"github.com/rodeorm/shortener/internal/grpc/meta"
+	"google.golang.org/grpc/metadata"
 )
 
-// getUserIdentity определяет по контексту какой пользователь авторизовался, если мета в контексте некорректная, то создает нового пользователя и новую мету в контекст,
+// getUserIdentity определяет по контексту какой пользователь авторизовался, если мета в контексте некорректная, то создает нового пользователя и возвращает пользователя и мету
 // возвращает совместно с ними и ошибку
-func (g *grpcServer) getUserIdentity(ctx *context.Context) (*context.Context, error) {
+func (g *grpcServer) getUserIdentity(ctx *context.Context) (*core.User, metadata.MD, error) {
 	userKey, err := meta.GetUserKeyFromCtx(ctx)
 	user := &core.User{}
 
@@ -26,11 +27,11 @@ func (g *grpcServer) getUserIdentity(ctx *context.Context) (*context.Context, er
 	}
 	user, err = g.UserStorage.InsertUser(key)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	ctx, err = meta.PutUserKeyToCtx(fmt.Sprint(user.Key))
+	md, err := meta.PutUserKeyToMD(fmt.Sprint(user.Key))
 	if err != nil {
-		return nil, err
+		return user, nil, err
 	}
-	return ctx, nil
+	return user, md, nil
 }

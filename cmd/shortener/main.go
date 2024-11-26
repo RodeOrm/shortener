@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"github.com/rodeorm/shortener/internal/api"
 	"github.com/rodeorm/shortener/internal/core"
-	grpc "github.com/rodeorm/shortener/internal/grpc/server"
+	"github.com/rodeorm/shortener/internal/grpc"
 	"github.com/rodeorm/shortener/internal/repo"
 )
 

@@ -1,5 +1,5 @@
-// Package grpc используется для реализации gprc
-package server
+// Package grpc используется для реализации серверной части gprc
+package grpc
 
 import (
 	"log"
@@ -13,14 +13,14 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/rodeorm/shortener/internal/core"
-	"github.com/rodeorm/shortener/internal/grpc/server/interc"
+	"github.com/rodeorm/shortener/internal/grpc/interc"
 	"github.com/rodeorm/shortener/internal/logger"
 	pb "github.com/rodeorm/shortener/proto"
 )
 
 // GRPCServer поддерживает все необходимые методы сервера через встраивание pb.UnimplementedURLServiceServer,
-// GRPCServer конфигурируется через атрибуты core.Server
-// GRPCServer включает в себя инстанс grpc.Server
+// конфигурируется через атрибуты core.Server,
+// включает в себя инстанс grpc.Server
 type grpcServer struct {
 	srv *grpc.Server
 	core.Server
@@ -47,7 +47,7 @@ func ServerStart(core *core.Server, wg *sync.WaitGroup) {
 
 	go func() {
 		if err := grpcSrv.srv.Serve(listen); err != nil {
-			log.Fatalf("failed to serve: %v", err)
+			log.Fatalf("Ошибка при обработке: %v", err)
 		}
 	}()
 

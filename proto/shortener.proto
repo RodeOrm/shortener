@@ -32,7 +32,7 @@ message User {
 // Statistic - статистика по сокращенным URL и количеству пользователей в сервисе
 message Statistic {
 	sint32 urls = 1;    // Количество сокращённых URL в сервисе
-  sint32 users = 2;   // Количество пользователей в сервисе
+    sint32 users = 2;   // Количество пользователей в сервисе
 }
 
 // ShortenRequest запрос для Shorten
@@ -42,7 +42,7 @@ message ShortenRequest {
 
 // ShortenResponse ответ для Shorten
 message ShortenResponse {
-   URL url   = 1;
+   string url   = 1;
 }
 
 // PingDBRequest запрос для PingDB
