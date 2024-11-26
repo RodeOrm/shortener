@@ -11,6 +11,9 @@ import (
 )
 
 // Root аналог хэндлера Root
+// Возвращает ответ с кодом 201 и сокращённым URL в виде текстовой строки в теле, если удалось сократить URL без ошибок.
+// Возвращает ответ с кодом 409, если URL был сокращен ранее.
+// Возвращает ответ с кодом 400, если возникает ошибка.
 func (g *grpcServer) Root(ctx context.Context, req *pb.RootRequest) (*pb.RootResponse, error) {
 	url := core.URL{OriginalURL: req.Url}
 

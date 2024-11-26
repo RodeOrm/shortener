@@ -30,6 +30,7 @@ func TestDBPing(t *testing.T) {
 	// Инициализируем gRPC сервер с мокированным хранилищем
 	grpcSrv := grpcServer{Server: core.Server{DBStorage: storage}}
 	grpcSrv.srv = grpc.NewServer(grpc.UnaryInterceptor(interc.UnaryLogInterceptor))
+	defer grpcSrv.srv.Stop()
 
 	pb.RegisterURLServiceServer(grpcSrv.srv, &grpcSrv)
 
@@ -42,6 +43,7 @@ func TestDBPing(t *testing.T) {
 		if err := grpcSrv.srv.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}
+
 	}()
 
 	// Создаём gRPC клиент для отправки запросов
