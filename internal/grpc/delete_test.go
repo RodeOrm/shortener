@@ -78,8 +78,8 @@ func TestAPIUserDeleteURLs(t *testing.T) {
 		t.FailNow()
 	}
 	st, _ := status.FromError(err)
-	log.Printf("Результаты PingDB: %v", resp)
+	log.Printf("Результаты %s: %v", ts.name, resp)
 
-	assert.Equal(t, codes.OK, st.Code())
+	assert.Equal(t, ts.expectedCode, st.Code())
 
 }
