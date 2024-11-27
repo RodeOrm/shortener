@@ -28,7 +28,7 @@ func TestAPIShorten(t *testing.T) {
 		{
 			//Нужно принимать и возвращать JSON
 			name: "Проверка обработки корректных запросов: POST (json)",
-			server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			body:    `{"url":"http://www.yandex.ru"}`,
@@ -38,7 +38,7 @@ func TestAPIShorten(t *testing.T) {
 		{
 			//Нужно принимать и возвращать JSON
 			name: "Проверка обработки некорректных запросов: POST (json)",
-			server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			body:    ``,

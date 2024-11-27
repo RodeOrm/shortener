@@ -19,7 +19,7 @@ import (
 )
 
 func TestRootServers(t *testing.T) {
-	grpcSrv := grpcServer{Server: core.Server{URLStorage: repo.GetMemoryStorage(),
+	grpcSrv := grpcServer{Server: &core.Server{URLStorage: repo.GetMemoryStorage(),
 		UserStorage: repo.GetMemoryStorage(),
 		Config: core.Config{
 			ServerConfig: core.ServerConfig{BaseURL: "base.com"}}}}
@@ -39,19 +39,18 @@ func TestRootServers(t *testing.T) {
 
 	}()
 
-	tests := []struct {
+	type test struct {
 		name     string
 		want     codes.Code
 		request  pb.RootRequest
 		response pb.RootResponse
-	}{
+	}
 
-		{
-			name:     "Проверка обработки корректных запросов",
-			want:     codes.OK,
-			request:  pb.RootRequest{Url: "https://www.yandex.ru"},
-			response: pb.RootResponse{},
-		},
+	ts := test{
+		name:     "Проверка обработки корректных запросов",
+		want:     codes.OK,
+		request:  pb.RootRequest{Url: "https://www.yandex.ru"},
+		response: pb.RootResponse{},
 	}
 	conn, err := grpc.NewClient(":3200", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -64,19 +63,16 @@ func TestRootServers(t *testing.T) {
 	ctx := context.Background()
 	var header metadata.MD
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	t.Run(ts.name, func(t *testing.T) {
+		rootResponse, err := c.Root(ctx, &ts.request, grpc.Header(&header))
+		if err != nil {
+			log.Println("Ошибка при вызове Root:", err)
+			t.FailNow()
+		}
+		st, _ := status.FromError(err)
+		log.Printf("Результаты Root: %v", rootResponse.Shorten)
 
-			rootResponse, err := c.Root(ctx, &tc.request, grpc.Header(&header))
-			if err != nil {
-				log.Println("Ошибка при вызове Root:", err)
-				t.FailNow()
-			}
-			st, _ := status.FromError(err)
-			log.Printf("Результаты Root: %v", rootResponse.Shorten)
-
-			assert.NoError(t, err, "ошибка при попытке сделать запрос")
-			assert.Equal(t, tc.want, st.Code(), "Код ответа не соответствует ожидаемому")
-		})
-	}
+		assert.NoError(t, err, "ошибка при попытке сделать запрос")
+		assert.Equal(t, ts.want, st.Code(), "Код ответа не соответствует ожидаемому")
+	})
 }

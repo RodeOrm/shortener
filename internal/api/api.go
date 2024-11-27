@@ -32,7 +32,7 @@ func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
 		defer cs.DeleteQueue.Close()
 	}
 
-	s := httpServer{Server: *cs}
+	s := httpServer{Server: cs}
 
 	r := mux.NewRouter()
 

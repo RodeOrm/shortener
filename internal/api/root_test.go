@@ -32,7 +32,7 @@ func TestRootServers(t *testing.T) {
 		{
 			//Эндпоинт GET /{id} принимает в качестве URL-параметра идентификатор сокращённого URL и возвращает ответ с кодом 307 и оригинальным URL в HTTP-заголовке Location.
 			name: "Проверка обработки корректных GET запросов (отсутствуют данные короткого url)",
-			Server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			Server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			method:  "GET",
@@ -42,7 +42,7 @@ func TestRootServers(t *testing.T) {
 		{
 			//Эндпоинт POST / принимает в теле запроса строку URL для сокращения и возвращает ответ с кодом 201 и сокращённым URL в виде текстовой строки в теле.
 			name: "Проверка обработки некорректных POST запросов",
-			Server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			Server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			method:  "POST",
@@ -52,7 +52,7 @@ func TestRootServers(t *testing.T) {
 		{
 			//Эндпоинт POST / принимает в теле запроса строку URL для сокращения и возвращает ответ с кодом 201 и сокращённым URL в виде текстовой строки в теле.
 			name: "Проверка обработки корректных POST запросов",
-			Server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			Server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			method:  "POST",
@@ -63,7 +63,7 @@ func TestRootServers(t *testing.T) {
 		{
 			//Нужно учесть некорректные запросы и возвращать для них ответ с кодом 400 (любые кроме GET и POST)
 			name: "Проверка обработки некорректных запросов: PUT",
-			Server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			Server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			method:  "PUT",
@@ -73,7 +73,7 @@ func TestRootServers(t *testing.T) {
 		{
 			//Нужно учесть некорректные запросы и возвращать для них ответ с кодом 400 (любые кроме GET и POST)
 			name: "Проверка обработки некорректных запросов: DELETE",
-			Server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			Server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			method:  "DELETE",
@@ -122,7 +122,7 @@ func TestRoot(t *testing.T) {
 	storage.EXPECT().InsertURL("http://err", gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("ошибка"))
 	storage.EXPECT().InsertURL("http://valid.com", gomock.Any(), gomock.Any()).Return(&core.URL{Key: "short", HasBeenShorted: false}, nil)
 
-	cs := core.Server{URLStorage: storage, UserStorage: storage, DBStorage: storage}
+	cs := &core.Server{URLStorage: storage, UserStorage: storage, DBStorage: storage}
 	s := httpServer{Server: cs}
 
 	handler := http.HandlerFunc(s.RootHandler)

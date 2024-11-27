@@ -9,7 +9,7 @@ import (
 )
 
 func TestBadRequestHandler(t *testing.T) {
-	s := httpServer{Server: core.Server{
+	s := httpServer{Server: &core.Server{
 		Config: core.Config{ServerConfig: core.ServerConfig{BaseURL: "http:tiny.com"}}}}
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {

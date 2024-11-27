@@ -26,7 +26,7 @@ func TestStat(t *testing.T) {
 	storage := mocks.NewMockStatStorager(ctrl)
 	storage.EXPECT().SelectStatistic().Return(&core.ServerStatistic{UrlQty: 100, UsrQty: 10}, nil).AnyTimes()
 
-	grpcSrv := grpcServer{Server: core.Server{StatStorage: storage, Config: core.Config{ServerConfig: core.ServerConfig{TrustedSubnet: "10.0.0.0/24"}}}}
+	grpcSrv := grpcServer{Server: &core.Server{StatStorage: storage, Config: core.Config{ServerConfig: core.ServerConfig{TrustedSubnet: "10.0.0.0/24"}}}}
 	grpcSrv.srv = grpc.NewServer(grpc.UnaryInterceptor(interc.UnaryLogInterceptor))
 	defer grpcSrv.srv.Stop()
 

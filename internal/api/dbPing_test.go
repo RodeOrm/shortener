@@ -21,7 +21,7 @@ func TestDBPing(t *testing.T) {
 
 	storage.EXPECT().Ping().Return(nil).AnyTimes()
 
-	s := httpServer{Server: core.Server{DBStorage: storage}}
+	s := httpServer{Server: &core.Server{DBStorage: storage}}
 
 	handler := http.HandlerFunc(s.PingDBHandler)
 	srv := httptest.NewServer(handler)

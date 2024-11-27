@@ -23,7 +23,7 @@ import (
 // включает в себя инстанс grpc.Server
 type grpcServer struct {
 	srv *grpc.Server
-	core.Server
+	*core.Server
 
 	pb.UnimplementedURLServiceServer
 }
@@ -36,7 +36,7 @@ func ServerStart(core *core.Server, wg *sync.WaitGroup) {
 		log.Fatal(err)
 	}
 
-	grpcSrv := grpcServer{Server: *core}
+	grpcSrv := grpcServer{Server: core}
 	grpcSrv.srv = grpc.NewServer(grpc.UnaryInterceptor(interc.UnaryLogInterceptor))
 
 	pb.RegisterURLServiceServer(grpcSrv.srv, &grpcSrv)

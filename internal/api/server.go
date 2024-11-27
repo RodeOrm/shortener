@@ -9,5 +9,5 @@ import (
 // Server веб-сервер и его характеристики
 type httpServer struct {
 	srv *http.Server
-	core.Server
+	*core.Server
 }

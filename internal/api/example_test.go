@@ -29,7 +29,7 @@ func ExamplehttpServer_APIShortenHandler() {
 		{
 			//Нужно принимать и возвращать JSON
 			name: "Проверка обработки корректных запросов: POST (json)",
-			server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			body:    `{"url":"http://www.yandex.ru"}`,
@@ -39,7 +39,7 @@ func ExamplehttpServer_APIShortenHandler() {
 		{
 			//Нужно принимать и возвращать JSON
 			name: "Проверка обработки некорректных запросов: POST (json)",
-			server: httpServer{Server: core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+			server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
 				URLStorage:  repo.GetMemoryStorage(),
 				UserStorage: repo.GetMemoryStorage()}},
 			body:    ``,
@@ -74,7 +74,7 @@ func ExamplehttpServer_APIShortenBatchHandler() {
 	storage.EXPECT().InsertURL("http://err", gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("ошибка"))
 	storage.EXPECT().InsertURL("http://valid.com", gomock.Any(), gomock.Any()).Return(&core.URL{Key: "short", HasBeenShorted: false}, nil)
 
-	s := httpServer{Server: core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
+	s := httpServer{Server: &core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
 
 	handler := http.HandlerFunc(s.APIShortenBatchHandler)
 	srv := httptest.NewServer(handler)
@@ -129,7 +129,7 @@ func ExamplehttpServer_APIUserDeleteURLsHandler() {
 	storage.EXPECT().InsertUser(gomock.Any()).Return(&core.User{Key: 1000, WasUnathorized: false}, nil).AnyTimes()
 	storage.EXPECT().DeleteURLs(gomock.Any()).Return(nil).AnyTimes()
 
-	s := httpServer{Server: core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage, Deleter: core.Deleter{DeleteQueue: core.NewQueue(3)}}}
+	s := httpServer{Server: &core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage, Deleter: core.Deleter{DeleteQueue: core.NewQueue(3)}}}
 
 	handler := http.HandlerFunc(s.APIUserDeleteURLsHandler)
 	srv := httptest.NewServer(handler)
@@ -180,7 +180,7 @@ func ExamplehttpServer_APIUserGetURLsHandler() {
 	storage.EXPECT().InsertUser(gomock.Any()).Return(user, nil).AnyTimes()
 	storage.EXPECT().SelectUserURLHistory(user).Return(userURLs, nil)
 
-	s := httpServer{Server: core.Server{UserStorage: storage,
+	s := httpServer{Server: &core.Server{UserStorage: storage,
 		URLStorage: storage,
 		DBStorage:  storage,
 		Config:     core.Config{ServerConfig: core.ServerConfig{BaseURL: "http:tiny.com"}}}}
@@ -218,7 +218,7 @@ func ExamplehttpServer_PingDBHandler() {
 
 	storage.EXPECT().Ping().Return(nil).AnyTimes()
 
-	s := httpServer{Server: core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
+	s := httpServer{Server: &core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
 
 	handler := http.HandlerFunc(s.PingDBHandler)
 	srv := httptest.NewServer(handler)
@@ -256,7 +256,7 @@ func ExamplehttpServer_RootHandler() {
 	storage.EXPECT().InsertURL("http://err", gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("ошибка"))
 	storage.EXPECT().InsertURL("http://valid.com", gomock.Any(), gomock.Any()).Return(&core.URL{Key: "short", HasBeenShorted: false}, nil)
 
-	s := httpServer{Server: core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
+	s := httpServer{Server: &core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
 
 	handler := http.HandlerFunc(s.RootHandler)
 	srv := httptest.NewServer(handler)
@@ -295,7 +295,7 @@ func ExamplehttpServer_RootURLHandler() {
 
 	storage.EXPECT().SelectOriginalURL(gomock.Any()).Return(&core.URL{Key: "Short", HasBeenDeleted: false}, nil).AnyTimes()
 
-	s := httpServer{Server: core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
+	s := httpServer{Server: &core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
 
 	handler := http.HandlerFunc(s.RootURLHandler)
 	srv := httptest.NewServer(handler)

@@ -27,7 +27,7 @@ func TestDBPing(t *testing.T) {
 	storage := mocks.NewMockStorager(ctrl)
 	storage.EXPECT().Ping().Return(nil).AnyTimes()
 
-	grpcSrv := grpcServer{Server: core.Server{DBStorage: storage}}
+	grpcSrv := grpcServer{Server: &core.Server{DBStorage: storage}}
 	grpcSrv.srv = grpc.NewServer(grpc.UnaryInterceptor(interc.UnaryLogInterceptor))
 	defer grpcSrv.srv.Stop()
 
