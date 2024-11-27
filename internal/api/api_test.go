@@ -10,6 +10,7 @@ import (
 
 func TestServerStart(t *testing.T) {
 	var wg sync.WaitGroup
+	wg.Add(1)
 	err := ServerStart(&core.Server{}, &wg)
 	require.Error(t, err)
 }

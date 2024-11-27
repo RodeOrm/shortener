@@ -10,24 +10,23 @@ import (
 	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/internal/grpc/interc"
 	"github.com/rodeorm/shortener/mocks"
+	pb "github.com/rodeorm/shortener/proto"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-
-	pb "github.com/rodeorm/shortener/proto"
 )
 
-func TestDBPing(t *testing.T) {
+func TestStat(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	storage := mocks.NewMockStorager(ctrl)
-	storage.EXPECT().Ping().Return(nil).AnyTimes()
+	storage := mocks.NewMockStatStorager(ctrl)
+	storage.EXPECT().SelectStatistic().Return(&core.ServerStatistic{UrlQty: 100, UsrQty: 10}, nil).AnyTimes()
 
-	grpcSrv := grpcServer{Server: core.Server{DBStorage: storage}}
+	grpcSrv := grpcServer{Server: core.Server{StatStorage: storage, Config: core.Config{ServerConfig: core.ServerConfig{TrustedSubnet: "10.0.0.0/24"}}}}
 	grpcSrv.srv = grpc.NewServer(grpc.UnaryInterceptor(interc.UnaryLogInterceptor))
 	defer grpcSrv.srv.Stop()
 
@@ -52,16 +51,20 @@ func TestDBPing(t *testing.T) {
 
 	c := pb.NewURLServiceClient(conn)
 
-	ctx := context.Background()
+	// добавляем мету с IP к запросу
+	md := metadata.New(map[string]string{"x-real-ip": "10.0.0.0"})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	var header metadata.MD
 
-	pingDBResponse, err := c.PingDB(ctx, &pb.PingDBRequest{}, grpc.Header(&header))
+	resp, err := c.Stats(ctx, &pb.StatsRequest{}, grpc.Header(&header))
 	if err != nil {
-		log.Println("Ошибка при вызове PingDB:", err)
+		log.Println("Ошибка при вызове Stats:", err)
 		t.FailNow()
 	}
 	st, _ := status.FromError(err)
-	log.Printf("Результаты PingDB: %v", pingDBResponse)
+	log.Printf("Результаты StatDB: %v", resp)
 
-	assert.Equal(t, codes.OK, st.Code())
+	assert.Equal(t, codes.OK, st.Code(), "сервер возвращает некорректный код")
+	assert.Equal(t, resp.Statistic.Urls, int32(100), "сервер возвращает некорректное количество урл")
+	assert.Equal(t, resp.Statistic.Users, int32(10), "сервер возвращает некорректное количество пользователей")
 }

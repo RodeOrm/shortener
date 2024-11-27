@@ -19,7 +19,6 @@ import (
 )
 
 func TestRootServers(t *testing.T) {
-	// Инициализируем gRPC сервер с мокированным хранилищем
 	grpcSrv := grpcServer{Server: core.Server{URLStorage: repo.GetMemoryStorage(),
 		UserStorage: repo.GetMemoryStorage(),
 		Config: core.Config{
@@ -29,7 +28,6 @@ func TestRootServers(t *testing.T) {
 	pb.RegisterURLServiceServer(grpcSrv.srv, &grpcSrv)
 	defer grpcSrv.srv.Stop()
 
-	// Запускаем gRPC сервер в отдельной горутине
 	go func() {
 		lis, err := net.Listen("tcp", ":3200")
 		if err != nil {
@@ -63,17 +61,16 @@ func TestRootServers(t *testing.T) {
 
 	c := pb.NewURLServiceClient(conn)
 
-	// Подготавливаем контекст и выполняем вызов PingDB
 	ctx := context.Background()
 	var header metadata.MD
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Подготавливаем контекст и выполняем вызов PingDB
+
 			rootResponse, err := c.Root(ctx, &tc.request, grpc.Header(&header))
 			if err != nil {
 				log.Println("Ошибка при вызове Root:", err)
-				t.FailNow() // Завершаем тест с ошибкой, если вызов не удался
+				t.FailNow()
 			}
 			st, _ := status.FromError(err)
 			log.Printf("Результаты Root: %v", rootResponse.Shorten)

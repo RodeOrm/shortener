@@ -37,19 +37,16 @@ func CheckNet(r *http.Request, CIDR string) (bool, error) {
 		return false, fmt.Errorf("ошибка при получении ip из http header")
 	}
 
-	inCIDR, err := isIPInCIDR(ip, CIDR)
-	if err != nil {
-		return false, nil
-	}
+	inCIDR := IsIPInCIDR(ip, CIDR)
 	return inCIDR, nil
 }
 
-// isIPInCIDR проверяет, содержится ли IP в CIDR
-func isIPInCIDR(ip net.IP, cidrStr string) (bool, error) {
+// IsIPInCIDR проверяет, содержится ли IP в CIDR
+func IsIPInCIDR(ip net.IP, cidrStr string) bool {
 	_, cidr, err := net.ParseCIDR(cidrStr) // Парсинг CIDR из строки
 	if err != nil {
-		return false, fmt.Errorf("ошибка при парсинге CIDR: %s", err)
+		return false
 	}
 
-	return cidr.Contains(ip), nil
+	return cidr.Contains(ip)
 }
