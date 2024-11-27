@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
@@ -14,7 +15,7 @@ import (
 
 func main() {
 	// устанавливаем соединение с сервером
-	conn, err := grpc.NewClient(":3200", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(":3200", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithDefaultCallOptions(grpc.UseCompressor(gzip.Name)))
 	if err != nil {
 		log.Fatal(err)
 	}

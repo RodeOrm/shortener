@@ -16,6 +16,8 @@ import (
 	"github.com/rodeorm/shortener/internal/grpc/interc"
 	"github.com/rodeorm/shortener/internal/logger"
 	pb "github.com/rodeorm/shortener/proto"
+
+	_ "google.golang.org/grpc/encoding/gzip"
 )
 
 // GRPCServer поддерживает все необходимые методы сервера через встраивание pb.UnimplementedURLServiceServer,
