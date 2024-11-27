@@ -11,7 +11,7 @@ import (
 // Возвращает ответ с кодом 201 и сокращённым URL в виде текстовой строки в теле, если удалось сократить URL без ошибок.
 // Возвращает ответ с кодом 409, если URL был сокращен ранее.
 // Возвращает ответ с кодом 400, если возникает ошибка.
-func (h *Server) RootHandler(w http.ResponseWriter, r *http.Request) {
+func (h *httpServer) RootHandler(w http.ResponseWriter, r *http.Request) {
 
 	w, user, err := h.getUserIdentity(w, r)
 	if err != nil {

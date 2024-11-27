@@ -8,59 +8,42 @@ import (
 	"net/http/pprof"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
-	"time"
 
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
 	"github.com/rodeorm/shortener/internal/api/middleware"
+	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/internal/logger"
 )
 
-const (
-	serverReadTimeout  = 15 * time.Second
-	serverWriteTimeout = 15 * time.Second
-	shutdownTimeout    = 30 * time.Second
-)
-
-// Server веб-сервер и его характеристики
-type Server struct {
-	srv             *http.Server  // Сервер
-	idleConnsClosed chan struct{} // Уведомление о завершении работы
-
-	ProfileType int // Тип профилирования (если необходимо)
-
-	URLStorage  URLStorager  // Хранилище данных для URL
-	UserStorage UserStorager // Хранилище данных для URL
-	DBStorage   DBStorager   // Хранилище данных для DB
-
-	Config
-	Deleter
-}
-
 // ServerStart запускает веб-сервер
-func ServerStart(s *Server) error {
+func ServerStart(cs *core.Server, wg *sync.WaitGroup) error {
+	defer wg.Done()
 
-	if s.URLStorage == nil || s.UserStorage == nil {
+	if cs.URLStorage == nil || cs.UserStorage == nil {
 		return fmt.Errorf("не определены хранилища")
 	}
 
-	if s.DBStorage != nil {
-		defer s.DBStorage.Close()
-		defer close(s.DeleteQueue.ch)
+	if cs.DBStorage != nil {
+		defer cs.DBStorage.Close()
+		defer cs.DeleteQueue.Close()
 	}
+
+	s := httpServer{Server: cs}
 
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", s.RootHandler).Methods(http.MethodPost)
 	r.HandleFunc("/ping", s.PingDBHandler).Methods(http.MethodGet)
 	r.HandleFunc("/{URL}", s.RootURLHandler).Methods(http.MethodGet)
-
 	r.HandleFunc("/api/shorten", s.APIShortenHandler).Methods(http.MethodPost)
 	r.HandleFunc("/api/user/urls", s.APIUserGetURLsHandler).Methods(http.MethodGet)
 	r.HandleFunc("/api/user/urls", s.APIUserDeleteURLsHandler).Methods(http.MethodDelete)
 	r.HandleFunc("/api/shorten/batch", s.APIShortenBatchHandler).Methods(http.MethodPost)
+	r.HandleFunc("/api/internal/stats", s.APIStatsHandler).Methods(http.MethodGet)
 
 	r.HandleFunc("/", s.badRequestHandler)
 	r.Use(middleware.WithZip, middleware.WithLog)
@@ -75,26 +58,23 @@ func ServerStart(s *Server) error {
 	s.srv = &http.Server{
 		Handler:      r,
 		Addr:         s.ServerAddress,
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: s.ServerWriteTimeout,
+		ReadTimeout:  s.ServerReadTimeout,
 	}
 
 	s.gracefulShutDown()
 
-	for i := 0; i < s.WorkerCount; i++ {
-		w := NewWorker(i, s.DeleteQueue, s.URLStorage, s.BatchSize)
-		go w.delete(s.idleConnsClosed)
-	}
+	core.StartWorkerPool(s.WorkerCount, s.DeleteQueue, s.URLStorage, s.BatchSize, s.IdleConnsClosed)
 
 	if s.Config.EnableHTTPS {
 		m := newTLSManager(s.Config.ServerAddress)
 		s.srv.TLSConfig = m.TLSConfig()
 		err := s.srv.ListenAndServeTLS("", "")
 		// ждём завершения процедуры graceful shutdown
-		<-s.idleConnsClosed
+		<-s.IdleConnsClosed
 		// получили оповещение о завершении
-		logger.Log.Info("Server Shutdowned",
-			zap.String("Server Shutdowned gracefully", s.ServerAddress),
+		logger.Log.Info("https server shutdowned",
+			zap.String("Завершили изящное выключение", s.ServerAddress),
 		)
 
 		if err != nil {
@@ -103,11 +83,12 @@ func ServerStart(s *Server) error {
 	} else {
 		err := s.srv.ListenAndServe()
 		// ждём завершения процедуры graceful shutdown
-		<-s.idleConnsClosed
+		<-s.IdleConnsClosed
 		// получили оповещение о завершении
 		// например закрыть соединение с базой данных,
 		// закрыть открытые файлы
-		logger.Log.Info("Server Shutdowned",
+
+		logger.Log.Info("http server shutdowned",
 			zap.String("Завершили изящное выключение", s.ServerAddress),
 		)
 
@@ -119,9 +100,10 @@ func ServerStart(s *Server) error {
 	return nil
 }
 
-func (h *Server) gracefulShutDown() {
+func (h *httpServer) gracefulShutDown() {
+
 	// через этот канал сообщим основному потоку, что соединения закрыты
-	h.idleConnsClosed = make(chan struct{})
+	h.IdleConnsClosed = make(chan struct{})
 	// канал для перенаправления прерываний
 	// поскольку нужно отловить всего одно прерывание,
 	// ёмкости 1 для канала будет достаточно
@@ -138,7 +120,7 @@ func (h *Server) gracefulShutDown() {
 		<-sigint
 
 		// создаем контекст с таймаутом
-		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), h.ShutdownTimeout)
 		defer cancel()
 
 		// получили сигнал os.Interrupt, запускаем процедуру graceful shutdown
@@ -153,6 +135,6 @@ func (h *Server) gracefulShutDown() {
 		logger.Log.Info("Server Shutdown",
 			zap.String("Начали изящное выключение", h.ServerAddress),
 		)
-		close(h.idleConnsClosed)
+		close(h.IdleConnsClosed)
 	}()
 }

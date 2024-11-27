@@ -16,13 +16,13 @@ func TestAsync(t *testing.T) {
 	storage := mocks.NewMockStorager(ctrl)
 	storage.EXPECT().DeleteURLs(gomock.Any()).Return(nil).AnyTimes()
 
-	q := NewQueue(1)
+	q := core.NewQueue(1)
 	require.NotNil(t, q)
 
-	w := NewWorker(1, q, storage, 1)
+	w := core.NewWorker(1, q, storage, 1)
 	require.NotNil(t, w)
 	close := make(chan struct{})
-	go w.delete(close)
+	go w.Delete(close)
 
 	url := []core.URL{
 		{OriginalURL: "http://yandex.ru"},
@@ -32,11 +32,11 @@ func TestAsync(t *testing.T) {
 }
 
 func TestNewQueue(t *testing.T) {
-	require.NotNil(t, NewQueue(10))
+	require.NotNil(t, core.NewQueue(10))
 }
 
 func TestPush(t *testing.T) {
-	queue := NewQueue(10)
+	queue := core.NewQueue(10)
 	require.NotNil(t, queue)
 	urls := []core.URL{{OriginalURL: "https://yandex.ru"}, {OriginalURL: "https://yandex.com"}}
 	err := queue.Push(urls)

@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"encoding/json"
@@ -7,6 +7,28 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+/*
+func TestConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+
+		{
+			name: "Проверка нормальной конфигурации c БД",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server, err := Configurate()
+			require.NoError(t, err)
+			err = profile(server.ProfileType)
+			require.NoError(t, err)
+		})
+	}
+}
+*/
 
 func TestSetConfigFromFile(t *testing.T) {
 	// Создаем временный конфигурационный файл для теста
@@ -20,6 +42,7 @@ func TestSetConfigFromFile(t *testing.T) {
 			ServerAddress:   "localhost:8181",
 			BaseURL:         "http://localhost",
 			FileStoragePath: "/path/to/file.db",
+			TrustedSubnet:   "trustedSubnet",
 		},
 		DatabaseConfig: DatabaseConfig{
 			DatabaseDSN: "dsn",
@@ -45,12 +68,13 @@ func TestSetConfigFromFile(t *testing.T) {
 	assert.Equal(t, "http://localhost", builder.server.Config.BaseURL)
 	assert.Equal(t, "/path/to/file.db", builder.server.Config.FileStoragePath)
 	assert.Equal(t, "dsn", builder.server.Config.DatabaseDSN)
+	assert.Equal(t, "trustedSubnet", builder.server.Config.TrustedSubnet)
 	assert.True(t, builder.server.Config.EnableHTTPS)
 }
 
 func TestSetConfig(t *testing.T) {
 	builder := ServerBuilder{}
-	builder = builder.SetConfig("localhost:8080", "http://localhost", "/path/to/file.db", "dsn", "true")
+	builder = builder.SetConfig("localhost:8080", "http://localhost", "/path/to/file.db", "dsn", "true", "trustedSubnet")
 
 	// Проверка значений
 	assert.Equal(t, "localhost:8080", builder.server.Config.ServerAddress)

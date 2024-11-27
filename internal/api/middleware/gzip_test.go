@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/rodeorm/shortener/internal/zip"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,7 +41,7 @@ func TestWithZip(t *testing.T) {
 func TestGzipWriter_Write(t *testing.T) {
 	var buf bytes.Buffer
 	gzipW := gzip.NewWriter(&buf)
-	writer := gzipWriter{Writer: gzipW}
+	writer := zip.GzipWriter{Writer: gzipW}
 
 	data := []byte("test data")
 	n, err := writer.Write(data)

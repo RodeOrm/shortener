@@ -1,10 +1,9 @@
-package api
+package core
 
 import (
 	"fmt"
 	"sync"
 
-	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/internal/logger"
 )
 
@@ -14,6 +13,27 @@ type Worker struct {
 	batchSize  int
 	queue      *Queue
 	urlStorage URLStorager
+}
+
+// Queue очередь на удаление URL
+type Queue struct {
+	ch chan *URL
+}
+
+// StartWorkerPool один раз запускает воркер пул
+func StartWorkerPool(workerCount int, deleteQueue *Queue, urlStorage URLStorager, batchSize int, idleClosedChan chan struct{}) {
+	var once sync.Once
+	once.Do(func() {
+		for i := range workerCount {
+			w := NewWorker(i, deleteQueue, urlStorage, batchSize)
+			go w.Delete(idleClosedChan)
+		}
+	})
+}
+
+// Close закрывает очередь
+func (q *Queue) Close() {
+	close(q.ch)
 }
 
 // NewWorker создает новый Worker
@@ -28,7 +48,7 @@ func NewWorker(id int, queue *Queue, storage URLStorager, batchSize int) *Worker
 }
 
 // Push помещает пачку URL в очередь
-func (q *Queue) Push(url []core.URL) error {
+func (q *Queue) Push(url []URL) error {
 	var wg sync.WaitGroup
 
 	for _, v := range url {
@@ -46,19 +66,14 @@ func (q *Queue) Push(url []core.URL) error {
 // NewQueue создает новую очередь URL размером n
 func NewQueue(n int) *Queue {
 	return &Queue{
-		ch: make(chan *core.URL, n),
+		ch: make(chan *URL, n),
 	}
 }
 
-// Queue очередь на удаление URL
-type Queue struct {
-	ch chan *core.URL
-}
-
 // PopWait извлекает пачку URL из очереди на удаление
-func (q *Queue) popWait(n int) []core.URL {
+func (q *Queue) PopWait(n int) []URL {
 
-	urls := make([]core.URL, 0)
+	urls := make([]URL, 0)
 	for i := 0; i < n; i++ {
 		select {
 		case val := <-q.ch:
@@ -70,8 +85,8 @@ func (q *Queue) popWait(n int) []core.URL {
 	return urls
 }
 
-// delete основной рабочий метод Worker, удаляющего url из очереди
-func (w *Worker) delete(exit chan struct{}) {
+// Delete основной рабочий метод Worker, удаляющего url из очереди
+func (w *Worker) Delete(exit chan struct{}) {
 	logger.Log.Info(fmt.Sprintf("воркер #%d стартовал", w.id))
 
 	for {
@@ -81,7 +96,7 @@ func (w *Worker) delete(exit chan struct{}) {
 				return
 			}
 		default:
-			urls := w.queue.popWait(w.batchSize)
+			urls := w.queue.PopWait(w.batchSize)
 
 			if len(urls) == 0 {
 				continue

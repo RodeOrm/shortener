@@ -3,6 +3,7 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
@@ -22,19 +23,24 @@ var (
 
 // GetStorages определяет реализации для хранения данных
 func GetStorages(filePath, dbConnectionString string) (*memoryStorage, *fileStorage, *postgresStorage) {
-	logger.Log.Info("Init storage",
-		zap.String("Начали процесс выбора хранилища", filePath),
-	)
+	logger.Log.Info("GetStorages",
+		zap.String("Переменные на входе", fmt.Sprintf("ConnectionString: %s, FilePath: %s", dbConnectionString, filePath)))
 	ps, err := GetPostgresStorage(dbConnectionString)
 	if err == nil {
+		logger.Log.Info("GetStorages",
+			zap.String("Выбрано хранилище в Postgres", ""),
+		)
 		return nil, nil, ps
 	}
 	fs, err := GetFileStorage(filePath)
 	if err == nil {
+		logger.Log.Info("GetStorages",
+			zap.String("Выбрано хранилище в файле", ""),
+		)
 		return nil, fs, nil
 	}
-	logger.Log.Info("Init storage",
-		zap.String("хранилище в памяти", ""),
+	logger.Log.Info("GetStorages",
+		zap.String("Выбрано хранилище в памяти", ""),
 	)
 	return GetMemoryStorage(), nil, nil
 }
@@ -48,7 +54,7 @@ func GetMemoryStorage() *memoryStorage {
 			usr := make(map[int]*core.User)
 			usrURL := make(map[int]*[]core.UserURLPair)
 			ms = &memoryStorage{originalToShort: ots, shortToOriginal: sto, users: usr, userURLPairs: usrURL}
-			logger.Log.Info("Init storage",
+			logger.Log.Info("GetMemoryStorage",
 				zap.String("Storage", "Memory storage"),
 			)
 		})
@@ -63,7 +69,7 @@ func GetFileStorage(filePath string) (*fileStorage, error) {
 			usrURL := make(map[int]*[]core.UserURLPair)
 
 			fs = &fileStorage{filePath: filePath, users: usr, userURLPairs: usrURL}
-			logger.Log.Info("Init storage",
+			logger.Log.Info("GetFileStorage",
 				zap.String("Storage", "File storage"),
 			)
 		})
@@ -103,7 +109,7 @@ func GetPostgresStorage(connectionString string) (*postgresStorage, error) {
 			if dbErr = ps.prepareStatements(); dbErr != nil {
 				return
 			}
-			logger.Log.Info("Init storage",
+			logger.Log.Info("GetPostgresStorage",
 				zap.String("Storage", "Postgres storage"),
 			)
 		})

@@ -24,7 +24,7 @@ func TestAPIShortenBatch(t *testing.T) {
 	storage.EXPECT().InsertURL("http://err", gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("ошибка"))
 	storage.EXPECT().InsertURL("http://valid.com", gomock.Any(), gomock.Any()).Return(&core.URL{Key: "short", HasBeenShorted: false}, nil)
 
-	s := Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}
+	s := httpServer{Server: &core.Server{UserStorage: storage, URLStorage: storage, DBStorage: storage}}
 
 	handler := http.HandlerFunc(s.APIShortenBatchHandler)
 	srv := httptest.NewServer(handler)

@@ -10,7 +10,7 @@ import (
 )
 
 // getUserIdentity определяет по кукам какой пользователь авторизовался, если куки некорректные, то создает нового пользователя и новые куки, но возвращает совместно с ними и ошибку
-func (h *Server) getUserIdentity(w http.ResponseWriter, r *http.Request) (http.ResponseWriter, *core.User, error) {
+func (h *httpServer) getUserIdentity(w http.ResponseWriter, r *http.Request) (http.ResponseWriter, *core.User, error) {
 	userKey, err := cookie.GetUserKeyFromCookie(r)
 	user := &core.User{}
 

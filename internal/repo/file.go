@@ -197,3 +197,8 @@ func сheckFile(filePath string) error {
 	log.Println("Файл уже есть: ", fileInfo.Name())
 	return nil
 }
+
+// SelectStatistic возвращает статистику по пользователям и сокращенным URL
+func (s *fileStorage) SelectStatistic() (*core.ServerStatistic, error) {
+	return &core.ServerStatistic{UsrQty: len(s.users), UrlQty: len(s.userURLPairs)}, nil
+}
