@@ -13,11 +13,3 @@ func (g *grpcServer) GetUserURLs(context.Context, *pb.UserURLsRequest) (*pb.User
 	return &resp, nil
 
 }
-
-// DeleteUserURLs аналог хэндлера для api
-func (g *grpcServer) DeleteUserURLs(context.Context, *pb.DeleteURLsRequest) (*pb.DeleteURLsResponse, error) {
-	var resp pb.DeleteURLsResponse
-
-	return &resp, nil
-
-}

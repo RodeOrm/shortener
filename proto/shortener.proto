@@ -64,8 +64,7 @@ message UserURLsResponse {
 
 // DeleteURLsRequest запрос для DeleteURLs
 message DeleteURLsRequest {
-    string user_id = 1;
-    repeated string urls_to_delete = 2;
+    string urls_to_delete = 1;
 }
 
 // DeleteURLsResponse ответ для DeleteURLs

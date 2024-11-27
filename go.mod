@@ -7,6 +7,7 @@ toolchain go1.23.0
 require (
 	github.com/go-resty/resty/v2 v2.15.3
 	github.com/golang/mock v1.6.0
+	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/jmoiron/sqlx v1.4.0
