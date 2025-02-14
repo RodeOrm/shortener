@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/mocks"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +21,7 @@ func TestDBPing(t *testing.T) {
 
 	storage.EXPECT().Ping().Return(nil).AnyTimes()
 
-	s := Server{DBStorage: storage}
+	s := httpServer{Server: &core.Server{DBStorage: storage}}
 
 	handler := http.HandlerFunc(s.PingDBHandler)
 	srv := httptest.NewServer(handler)

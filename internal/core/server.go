@@ -1,4 +1,4 @@
-package api
+package core
 
 import (
 	"encoding/json"
@@ -6,40 +6,22 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
-// Config конфигурация сервера
-type Config struct {
-	ServerConfig
-	DatabaseConfig
-	TLSConfig
-}
+// Server - общий набор атрибутов для http и grpc сервера
+type Server struct {
+	IdleConnsClosed chan struct{} // Уведомление о завершении работы
 
-// ServerConfig основные параметры сервера
-type ServerConfig struct {
-	ServerAddress   string `json:"server_address,omitempty"`    // "server_address": "localhost:8080"
-	BaseURL         string `json:"base_url,omitempty"`          // "base_url": "http://localhost"
-	FileStoragePath string `json:"file_storage_path,omitempty"` // "file_storage_path": "/path/to/file.db"
-}
+	ProfileType int // Тип профилирования (если необходимо)
 
-// DatabaseConfig параметры, связанные с СУБД
-type DatabaseConfig struct {
-	DatabaseDSN string `json:"database_dsn,omitempty"` //  "database_dsn": ""
-}
+	URLStorage  URLStorager  // Хранилище данных для URL
+	UserStorage UserStorager // Хранилище данных для URL
+	DBStorage   DBStorager   // Хранилище данных для DB
+	StatStorage StatStorager // Хранилище статистики сервера
 
-// TLSConfig паарметры, связаные с https
-type TLSConfig struct {
-	EnableHTTPS  bool `json:"enable_https,omitempty"` // "enable_https": true
-	IsGivenHTTPS bool // Для случаев, когда значение не представлено
-}
-
-// Deleter конфигурация сервера для удаления
-type Deleter struct {
-	WorkerCount int // Количество воркеров, асинхронно удаляющих url
-	BatchSize   int // Размер пачки для удаления
-
-	DeleteQueue *Queue //Очередь удаления
-
+	Config
+	Deleter
 }
 
 // ServerBuilder абстракция для создания сервера
@@ -108,17 +90,25 @@ func (s ServerBuilder) SetConfigFromFile(configName string) ServerBuilder {
 		s.server.Config.EnableHTTPS = cfg.EnableHTTPS
 	}
 
+	if s.server.Config.TrustedSubnet == "" {
+		s.server.Config.TrustedSubnet = cfg.TrustedSubnet
+	}
+
+	s.server.Config.GRPCAddress = cfg.GRPCAddress
+
 	log.Println(s.server.Config)
 	return s
 }
 
 // SetConfig заполняет конфигурацию данными из переменных окружения и флагов
-func (s ServerBuilder) SetConfig(sa, bu, fsp, dn, eh string) ServerBuilder {
+func (s ServerBuilder) SetConfig(sa, bu, fsp, dn, eh, tn string) ServerBuilder {
 	s.server.Config = Config{
 		ServerConfig: ServerConfig{
 			ServerAddress:   sa,
 			BaseURL:         bu,
-			FileStoragePath: fsp},
+			FileStoragePath: fsp,
+			TrustedSubnet:   tn,
+		},
 		DatabaseConfig: DatabaseConfig{DatabaseDSN: dn},
 	}
 
@@ -129,14 +119,6 @@ func (s ServerBuilder) SetConfig(sa, bu, fsp, dn, eh string) ServerBuilder {
 	}
 	s.server.EnableHTTPS = enableHTTPS
 	s.server.IsGivenHTTPS = true
-	return s
-}
-
-// SetStorages указывает хранилища для сервера
-func (s ServerBuilder) SetStorages(url URLStorager, user UserStorager, db DBStorager) ServerBuilder {
-	s.server.URLStorage = url
-	s.server.UserStorage = user
-	s.server.DBStorage = db
 	return s
 }
 
@@ -152,7 +134,22 @@ func (s ServerBuilder) SetProfileType(profileType int) ServerBuilder {
 	return s
 }
 
+func (s ServerBuilder) SetTimeOuts(readTimeOut, writeTimeOut, shotDownTimeOut time.Duration) ServerBuilder {
+	s.server.Config.ShutdownTimeout = shotDownTimeOut
+	s.server.Config.ServerReadTimeout = readTimeOut
+	s.server.Config.ServerWriteTimeout = writeTimeOut
+	return s
+}
+
 // Build возвращает сконфигурированный сервер объект Car.
 func (s ServerBuilder) Build() Server {
 	return s.server
+}
+
+// SetStorages выбирает реализацию каждого интерфейса из трех. Костыльная зависимость от конкертного
+func (s *Server) SetStorages(url URLStorager, user UserStorager, db DBStorager, st StatStorager) {
+	s.URLStorage = url
+	s.UserStorage = user
+	s.DBStorage = db
+	s.StatStorage = st
 }

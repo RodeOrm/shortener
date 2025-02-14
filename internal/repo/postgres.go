@@ -19,11 +19,6 @@ type postgresStorage struct {
 	preparedStatements map[string]*sqlx.Stmt
 }
 
-// Проверка соединения
-func (s *postgresStorage) Ping() error {
-	return s.DB.Ping()
-}
-
 /*
 InsertUser принимает идентификатор пользователя
 
@@ -49,8 +44,13 @@ func (s *postgresStorage) InsertUser(Key int) (*core.User, error) {
 	return &core.User{Key: Key, WasUnathorized: false}, nil
 }
 
+// Ping проверяет соединение
+func (s *postgresStorage) Ping() error {
+	return s.DB.Ping()
+}
+
 /*
-	InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа.
+InsertShortURL принимает оригинальный URL, генерирует для него ключ, сохраняет соответствие оригинального URL и ключа.
 
 Возвращает соответствующий сокращенный урл, а также признак того, что url сократили ранее
 */
@@ -123,6 +123,16 @@ func (s *postgresStorage) SelectUserURLHistory(user *core.User) ([]core.UserURLP
 		return nil, fmt.Errorf("нет истории для пользователя %d", user.Key)
 	}
 	return urls, nil
+}
+
+// SelectStatistic возвращает статистику по пользователям и сокращенным URL
+func (s *postgresStorage) SelectStatistic() (*core.ServerStatistic, error) {
+	stat := &core.ServerStatistic{}
+	err := s.preparedStatements["SelectStatistic"].Get(stat)
+	if err != nil {
+		return nil, err
+	}
+	return stat, nil
 }
 
 // Close закрывает соединение
@@ -215,6 +225,11 @@ func (s *postgresStorage) prepareStatements() error {
 		return err
 	}
 
+	nstmtStat, err := s.DB.Preparex(`SELECT COUNT(DISTINCT u.ID) AS UrlQty, COUNT(DISTINCT us.ID) AS UsrQty FROM urls u CROSS JOIN users us`)
+	if err != nil {
+		return err
+	}
+
 	// deleteURL UPDATE Urls SET isDeleted = true WHERE short = $1 AND userID = $2
 
 	s.preparedStatements["SelectUser"] = nstmtSelectUser
@@ -224,6 +239,7 @@ func (s *postgresStorage) prepareStatements() error {
 	s.preparedStatements["SelectOriginalURL"] = nstmtSelectOriginalURL
 	s.preparedStatements["SelectUserURLHistory"] = nstmtSelectUserURLHistory
 	s.preparedStatements["DeleteURL"] = nstmtDeleteURL
+	s.preparedStatements["SelectStatistic"] = nstmtStat
 
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/rodeorm/shortener/internal/core"
 	"github.com/rodeorm/shortener/internal/repo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,21 +22,25 @@ func TestAPIShorten(t *testing.T) {
 		request string
 		body    string
 
-		server Server
+		server httpServer
 		want   want
 	}{
 		{
 			//Нужно принимать и возвращать JSON
-			name:    "Проверка обработки корректных запросов: POST (json)",
-			server:  Server{Config: Config{ServerConfig: ServerConfig{ServerAddress: "http://localhost:8080"}}, URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
+			name: "Проверка обработки корректных запросов: POST (json)",
+			server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+				URLStorage:  repo.GetMemoryStorage(),
+				UserStorage: repo.GetMemoryStorage()}},
 			body:    `{"url":"http://www.yandex.ru"}`,
 			request: "http://localhost:8080/api/shorten",
 			want:    want{statusCode: 201, contentType: "json"},
 		},
 		{
 			//Нужно принимать и возвращать JSON
-			name:    "Проверка обработки некорректных запросов: POST (json)",
-			server:  Server{Config: Config{ServerConfig: ServerConfig{ServerAddress: "http://localhost:8080"}}, URLStorage: repo.GetMemoryStorage(), UserStorage: repo.GetMemoryStorage()}, // С хранилищем в памяти, поэтому мокать  не надо
+			name: "Проверка обработки некорректных запросов: POST (json)",
+			server: httpServer{Server: &core.Server{Config: core.Config{ServerConfig: core.ServerConfig{ServerAddress: "http://localhost:8080"}},
+				URLStorage:  repo.GetMemoryStorage(),
+				UserStorage: repo.GetMemoryStorage()}},
 			body:    ``,
 			request: "http://localhost:8080/api/shorten",
 			want:    want{statusCode: 400},
